@@ -3,13 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package raft_lidia;
+package Node;
 
 /**
  *
  * @author joaqu
  */
-public class Raft_lidia {
+public class Node {
 
     /**
      * @param args the command line arguments
