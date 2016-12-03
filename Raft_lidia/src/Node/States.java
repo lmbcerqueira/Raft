@@ -18,25 +18,49 @@ import java.io.IOException;
 
 public class States {
      
+    
     public void States() throws IOException{
        Follower follower = new Follower();
        Candidate candidate = new Candidate();
        Leader leader = new Leader();
+       FlowStateMachine flowSM= new FlowStateMachine();
        
-       String received,electionsResult;
-       received=follower.receiver();
+       
        
        while(true){
-        if(received.contains("ERROR"))
-            candidate.startElection();
-
-        electionsResult=candidate.resultsElection();
-        if(electionsResult.contains("ACCEPTED"))
-            leader.sendHeartBeat();
-        else if(electionsResult.contains("becomeFOLLOWER"))
+        if(flowSM.getStateMachine()==flowSM.follower){
+            String received;
             received=follower.receiver();
-        electionsResult=null;     
-       }      
-
+            
+            if(received.contains("ERROR")){
+                flowSM.fsm=flowSM.candidate;
+            }
+        }
+        
+        if(flowSM.getStateMachine()==flowSM.candidate){
+            candidate.startElection();
+            String electionsResult = candidate.resultsElection();
+            
+            if(electionsResult.contains("ACCEPTED")){
+                flowSM.fsm=flowSM.leader;
+                
+            }
+            else if(electionsResult.contains("becomeFOLLOWER")){
+                flowSM.fsm=flowSM.follower;
+            }
+        }
+        if(flowSM.getStateMachine()==flowSM.leader){
+            Thread t= new Thread();
+            t.start();
+            
+            
+        }
+        
+      
+    }      
+       
+       
     }
+
+ 
 }
