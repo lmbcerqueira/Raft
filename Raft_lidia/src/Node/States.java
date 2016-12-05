@@ -48,6 +48,7 @@ public class States {
             else if(electionsResult.contains("becomeFOLLOWER")){
                 flowSM.fsm=flowSM.follower;
             }
+                       
         }
         if(flowSM.getStateMachine()==flowSM.leader){
             Thread t= new Thread();

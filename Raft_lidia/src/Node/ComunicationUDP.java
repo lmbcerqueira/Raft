@@ -27,8 +27,7 @@ class ComunicationUDP  {
     }
         
     public void ComunicationUDP() throws UnknownHostException, IOException {
-        InetAddress serverIPAddress=null;
-        serverIPAddress = InetAddress.getByName(this.group);
+       this.serverIPAddress = InetAddress.getByName(this.group);
         
     }
     
