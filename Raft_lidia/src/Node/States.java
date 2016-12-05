@@ -15,61 +15,63 @@ public class States {
        Leader leader = new Leader();
          
        FlowStateMachine flowSM = new FlowStateMachine();
-       flowSM.setFollower();
        
-       int timeoutFollower = follower.getTimeout();  
-       int heartBeatPeriod = leader.getHeartBeat();
-       int timeoutCandidate = candidate.getTimeout();
+       //Processamento do FIFO
+       ConcurrentLinkedQueue<Pair> queue = new ConcurrentLinkedQueue<>();
+       DataProcessing dataProcessing = new DataProcessing(follower.getTimeout(),candidate.getTimeout(),queue);
        
+       //Parametros da comunicaçao UDP
        int port = follower.comModule.port;
        InetAddress groupIP = InetAddress.getByName(follower.comModule.group);
-       
-       
-       ConcurrentLinkedQueue<Pair> queue = new ConcurrentLinkedQueue<>();
        
        //Iniciar thread receive
        ThreadReceive receiverThread = new ThreadReceive(port, groupIP, queue);
        Thread receiver = new Thread(receiverThread);
        receiver.start();
        
+       //INICIO DA STATE MACHINE
+       flowSM.setFollower();
        
-       System.out.println(flowSM.getStateMachine());
-       System.out.println(timeoutCandidate);
-            
+       int state;
+       
        while(true){
            
-           int state = flowSM.getStateMachine();
-           
-          switch (state){
-                case 1: //FOLLOWER
-                                    
-                    String received;
-                    received = follower.receiver(timeoutFollower);
+        state = flowSM.getStateMachine();
+           //Guardar o valor do time start
+        long timeStart = System.currentTimeMillis();
+        
+        switch (state){
+            case 1: //FOLLOWER
+                System.out.println("SOU Follower");
 
-                    if(received.contains("ERROR")){
-                        flowSM.fsm = flowSM.candidate;
-                        System.out.println("SOU CANDIDATO");
-                    }
-                    
-                    break;
-                    
-                case 2: //CANDIDATE
-                    
-                    candidate.startElection();
-            
-                    String electionsResult = candidate.resultsElection(timeoutCandidate);
+                boolean received;
+                
+                received=dataProcessing.checkHeartBeats(timeStart);
+               
+                if(!received){
+                    flowSM.fsm = flowSM.candidate;
+                    System.out.println("SOU CANDIDATO");
+                }
 
-                    if(electionsResult.contains("ACCEPTED")){
-                        flowSM.fsm = flowSM.leader;
-                        System.out.println("I'M LEADER");
-                    }
- 
-                    else{ //(electionsResult.contains("becomeFOLLOWER")){
-                        flowSM.fsm = flowSM.follower;      
-                        System.out.println("I'M FOLLOWER");
-                    }
-                    
-                    break;
+                break;
+
+            case 2: //CANDIDATE
+
+                candidate.startElection();
+
+                String electionsResult = candidate.resultsElection();
+
+                if(electionsResult.contains("ACCEPTED")){
+                    flowSM.fsm = flowSM.leader;
+                    System.out.println("I'M LEADER");
+                }
+
+                else{ //(electionsResult.contains("becomeFOLLOWER")){
+                    flowSM.fsm = flowSM.follower;      
+                    System.out.println("I'M FOLLOWER");
+                }
+
+                break;
 //                    
 //                case 3: //LEADER
 //                    
@@ -78,10 +80,10 @@ public class States {
 //                    
 //                    break;
 //                
-                default: 
-                    
-                    System.out.println("UNKNOWN STATE");
-                    break;        
+            default: 
+
+                System.out.println("UNKNOWN STATE");
+                break;        
          }
       
        }      

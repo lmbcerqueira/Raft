@@ -10,9 +10,12 @@ import java.io.IOException;
 public class Leader {
     
     private final ComunicationUDP comModule;
+    private final long timeout;
+    
 
     public Leader() throws IOException {
         this.comModule = new ComunicationUDP();
+        this.timeout=this.getHeartBeat();
     }
     
     public int getHeartBeat(){

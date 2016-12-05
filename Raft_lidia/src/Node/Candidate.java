@@ -6,12 +6,14 @@ import java.io.IOException;
 public class Candidate {
     
     private final ComunicationUDP comModule;
-
+     private final long timeout;
+     
     public Candidate() throws IOException {
         this.comModule = new ComunicationUDP();
+        this.timeout=this.getTimeout();
     }
     
-    public int getTimeout(){
+    public long getTimeout(){
         
         int min_value = 1000; //?????????
         int max_value = 1100; //????????????
@@ -27,7 +29,7 @@ public class Candidate {
         this.comModule.sendData(electionString); 
     }
     
-    public String resultsElection(int timeout) throws IOException{
+    public String resultsElection() throws IOException{
         
         String receivedElection;
         

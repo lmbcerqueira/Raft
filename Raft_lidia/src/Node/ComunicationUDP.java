@@ -29,7 +29,7 @@ class ComunicationUDP  {
     
      public void sendData(String message) throws IOException {
             
-        System.out.println("\n\n\n VAI MANDAR DADOS\n");      
+        System.out.println("send::::::VAI MANDAR DADOS");      
        
         //prepare buffer to send
         byte[] sendData = new byte[message.length()];
@@ -38,7 +38,7 @@ class ComunicationUDP  {
         DatagramPacket pack = new DatagramPacket(sendData, sendData.length, serverIPAddress, this.port);
         
         s.send(pack);
-        System.out.println("\n ENVIADO\n"); 
+        System.out.println("send::::::ENVIADO"); 
             
     }
 

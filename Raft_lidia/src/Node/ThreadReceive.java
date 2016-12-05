@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.net.SocketTimeoutException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,7 +22,7 @@ public class ThreadReceive extends Thread {
     }
        
     public void run() {
-        
+        long time;
         MulticastSocket socket;
         try {
             socket = new MulticastSocket(this.port);
@@ -37,8 +36,11 @@ public class ThreadReceive extends Thread {
                 socket.receive(pack);
                 
                 byte[] bytes = pack.getData();
-                String str = new String(bytes);                
-                
+                String message = new String(bytes); 
+                time=System.currentTimeMillis();
+               
+                Pair pair=new Pair(time,message);
+                queue.add(pair);
             }
    
         } catch (IOException ex) {
