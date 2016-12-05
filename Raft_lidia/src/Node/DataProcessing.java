@@ -21,10 +21,7 @@ class DataProcessing {
         this.timeOutCandidate = timeOutCandidate;
         this.queue = queue;
     }
-
-    
-  
-    
+ 
     public boolean checkHeartBeats(long timeStart){
         String message="HELLO";
         
@@ -32,14 +29,23 @@ class DataProcessing {
             long x=System.currentTimeMillis()-timeStart;
             if(x>timeOutFollower)
                 return false;
-            System.out.println("FIFO VAZIA, timeout="+timeOutFollower+"  cuurentTime-timestart="+x);
+            if(this.queue.isEmpty())
+                continue;
+               // System.out.println("FIFO VAZIA, timeout="+timeOutFollower+"  cuurentTime-timestart="+x);
+            else if(this.queue.peek().getTime()<timeStart){
+                this.queue.poll();
+               // System.out.println("FIFO VALORES ERRADOS, timeout="+timeOutFollower+"  cuurentTime-timestart="+x);
+            }  
+            else
+                continue;
+                //System.out.println("FIFO VALORES CERTOS, timeout="+timeOutFollower+"  cuurentTime-timestart="+x);
         }
         
-        do{
-            while(this.queue.peek().getTime()<timeStart)
-                this.queue.poll();
-            System.out.println("FIFO COM VALORES ERRADOS");
-        }while(!this.queue.isEmpty());
+//        do{
+//            while(this.queue.peek().getTime()<timeStart)
+//                this.queue.poll();
+//            System.out.println("FIFO COM VALORES ERRADOS");
+//        }while(!this.queue.isEmpty());
         
         
         
@@ -79,7 +85,12 @@ class DataProcessing {
         //}
 
     }
+
+    boolean resultElections(long timeStart) {
+        
+        
+        return false;   
+    }
     
-        }
-    
+}
 

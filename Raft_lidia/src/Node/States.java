@@ -39,12 +39,12 @@ public class States {
         state = flowSM.getStateMachine();
            //Guardar o valor do time start
         long timeStart = System.currentTimeMillis();
-        
+        boolean received;
         switch (state){
             case 1: //FOLLOWER
                 System.out.println("SOU Follower");
 
-                boolean received;
+                
                 
                 received=dataProcessing.checkHeartBeats(timeStart);
                
@@ -59,9 +59,9 @@ public class States {
 
                 candidate.startElection();
 
-                String electionsResult = candidate.resultsElection();
+                received=dataProcessing.resultElections(timeStart);
 
-                if(electionsResult.contains("ACCEPTED")){
+                if(received){
                     flowSM.fsm = flowSM.leader;
                     System.out.println("I'M LEADER");
                 }

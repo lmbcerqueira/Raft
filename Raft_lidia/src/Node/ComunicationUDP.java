@@ -38,7 +38,7 @@ class ComunicationUDP  {
         DatagramPacket pack = new DatagramPacket(sendData, sendData.length, serverIPAddress, this.port);
         
         s.send(pack);
-        System.out.println("send::::::ENVIADO"); 
+        System.out.println("send::::::ENVIADO  ->"+message); 
             
     }
 
