@@ -2,8 +2,11 @@
 package Node;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class States {
+    
      
     public void States() throws IOException{
         
@@ -18,10 +21,17 @@ public class States {
        int heartBeatPeriod = leader.getHeartBeat();
        int timeoutCandidate = candidate.getTimeout();
        
+       int port = follower.comModule.port;
+       InetAddress groupIP = InetAddress.getByName(follower.comModule.group);
+       
+       
+       ConcurrentLinkedQueue<Pair> queue = new ConcurrentLinkedQueue<>();
+       
        //Iniciar thread receive
-       ThreadReceive receiverThread = new ThreadReceive();
+       ThreadReceive receiverThread = new ThreadReceive(port, groupIP, queue);
        Thread receiver = new Thread(receiverThread);
        receiver.start();
+       
        
        System.out.println(flowSM.getStateMachine());
        System.out.println(timeoutCandidate);

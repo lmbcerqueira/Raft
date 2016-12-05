@@ -31,19 +31,7 @@ public class Candidate {
         
         String receivedElection;
         
-        //while(true){
-            
-            receivedElection = this.comModule.receiveData(timeout);
-            System.out.println(receivedElection);
-            
-            return receivedElection;
-            
-//            if(receivedElection.contains("ACCEPTED"))
-//                return "ACCEPTED";
-//            else if(receivedElection.contains("becomeFOLLOWER"))
-//                return "FOLLOWER";
-//            else
-            
-        //}
+        return "ola";
+        
     }
 }

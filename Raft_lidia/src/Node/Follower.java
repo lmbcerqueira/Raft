@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public class Follower  {
     
-    private final ComunicationUDP comModule;
+    public final ComunicationUDP comModule;
 
     public Follower() throws IOException {
         this.comModule = new ComunicationUDP();
@@ -28,10 +28,10 @@ public class Follower  {
         
         while(true){
             
-            receive = this.comModule.receiveData(timeout);
+            //receive = this.comModule.receiveData(timeout);
            
-            if(!receive.contains("HELLO"))
-                return  "ERROR";
+//            if(!receive.contains("HELLO"))
+//                return  "ERROR";
 
         }
 
