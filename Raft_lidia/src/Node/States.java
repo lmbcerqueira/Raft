@@ -18,6 +18,11 @@ public class States {
        int heartBeatPeriod = leader.getHeartBeat();
        int timeoutCandidate = candidate.getTimeout();
        
+       //Iniciar thread receive
+       ThreadReceive receiverThread = new ThreadReceive();
+       Thread receiver = new Thread(receiverThread);
+       receiver.start();
+       
        System.out.println(flowSM.getStateMachine());
        System.out.println(timeoutCandidate);
             

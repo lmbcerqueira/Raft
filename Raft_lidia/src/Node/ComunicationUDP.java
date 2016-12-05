@@ -25,27 +25,7 @@ class ComunicationUDP  {
 
     }
     
-    public String receiveData(int timeout) throws IOException{
-        
-        System.out.println("\n\n\n VAI RECEBER DADOS\n");
-        
-        byte[] buf = new byte[1024];
-        DatagramPacket pack = new DatagramPacket(buf, buf.length);
-            
-        s.setSoTimeout(timeout);   // set the timeout in millisecounds.
-        try {     
-            s.receive(pack);
-            
-            byte[] bytes = pack.getData();
-            String str = new String(bytes);
-        
-            return str;
-            
-        }catch(SocketTimeoutException e){
-            return "ERROR";
-        }
-                  
-    }
+
     
      public void sendData(String message) throws IOException {
             

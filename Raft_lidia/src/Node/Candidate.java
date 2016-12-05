@@ -9,7 +9,6 @@ public class Candidate {
 
     public Candidate() throws IOException {
         this.comModule = new ComunicationUDP();
-      
     }
     
     public int getTimeout(){
@@ -21,7 +20,7 @@ public class Candidate {
     }
       
     public void startElection() throws IOException{
-       
+        
         String electionString;
         electionString = "ELECTION";
 
