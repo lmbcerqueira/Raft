@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * @author joaqu
  */
 class DataProcessing {
+    private final int numeroNos=3;
     private final long timeOutFollower;
     private final long timeOutCandidate;
     private final ConcurrentLinkedQueue<Pair> queue;
@@ -87,9 +88,30 @@ class DataProcessing {
     }
 
     boolean resultElections(long timeStart) {
+        int votes = 0;
         
+        while(true){
+            long x=System.currentTimeMillis()-timeStart;
+            if(x>timeOutCandidate)
+                return false;
+            else if(this.queue.isEmpty())
+                continue;
+            else if(this.queue.peek().getTime()<timeStart)
+                this.queue.poll();
+            else if(this.queue.peek().getMessage().contains("ACCEPTED")){
+                votes++;
+                this.queue.poll();
+                if(votes>(this.numeroNos/2))
+                    return true;
+            }
+            else if(this.queue.peek().getMessage().contains("REJECTED")){
+                this.queue.poll();
+                return false;
+            }     
+            
+        }
         
-        return false;   
+
     }
     
 }
