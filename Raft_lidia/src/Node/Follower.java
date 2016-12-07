@@ -1,40 +1,29 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package Node;
 
 import java.io.IOException;
 
-/**
- *
- * @author joaqu
- */
+
 public class Follower  {
-    private final ComunicationUDP comModule;
+    
+    public final ComunicationUDP comModule;
+    private final long timeout;
 
     public Follower() throws IOException {
         this.comModule = new ComunicationUDP();
-  
+        this.timeout=this.getTimeout();
         
+  
     }
     
-    public String receiver() throws IOException{
+    public long getTimeout(){
+                 
+        int min_value = 1500;
+        int max_value = 3000;
         
-        String receive;
-        while(true){
-            receive=this.comModule.receiveData();
-            if(receive.contains("HELLO"))
-                continue;
-            else if(receive.contains("ERROR"))
-                return "ERROR";
-            else 
-                return "ERROR";
-        }
-        
-            
-        
+        return min_value + (int)(Math.random() * ((max_value - min_value) + 1));
+       
     }
+   
     
 }

@@ -1,67 +1,92 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package Node;
 
-
-
 import java.io.IOException;
-
-/**
- *
- * @author joaqu
- */
-
-
+import java.net.InetAddress;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class States {
-     
     
+     
     public void States() throws IOException{
+        
        Follower follower = new Follower();
        Candidate candidate = new Candidate();
        Leader leader = new Leader();
-       FlowStateMachine flowSM= new FlowStateMachine();
+         
+       FlowStateMachine flowSM = new FlowStateMachine();
        
+       //Processamento do FIFO
+       ConcurrentLinkedQueue<Pair> queue = new ConcurrentLinkedQueue<>();
+       DataProcessing dataProcessing = new DataProcessing(follower.getTimeout(),candidate.getTimeout(),queue);
        
+       //Parametros da comunicaçao UDP
+       int port = follower.comModule.port;
+       InetAddress groupIP = InetAddress.getByName(follower.comModule.group);
+       
+       //Iniciar thread receive
+       ThreadReceive receiverThread = new ThreadReceive(port, groupIP, queue);
+       Thread receiver = new Thread(receiverThread);
+       receiver.start();
+       
+       //INICIO DA STATE MACHINE
+       flowSM.setFollower();
+       
+       int state;
        
        while(true){
-        if(flowSM.getStateMachine()==flowSM.follower){
-            String received;
-            received=follower.receiver();
-            
-            if(received.contains("ERROR")){
-                flowSM.fsm=flowSM.candidate;
-            }
-        }
-        
-        if(flowSM.getStateMachine()==flowSM.candidate){
-            candidate.startElection();
-            String electionsResult = candidate.resultsElection();
-            
-            if(electionsResult.contains("ACCEPTED")){
-                flowSM.fsm=flowSM.leader;
-                
-            }
-            else if(electionsResult.contains("becomeFOLLOWER")){
-                flowSM.fsm=flowSM.follower;
-            }
-                       
-        }
-        if(flowSM.getStateMachine()==flowSM.leader){
-            Thread t= new Thread();
-            t.start();
-            
-            
-        }
-        
-      
-    }      
-       
-       
-    }
+           
+        state = flowSM.getStateMachine();
+           //Guardar o valor do time start
+        long timeStart = System.currentTimeMillis();
+        boolean received;
+        switch (state){
+            case 1: //FOLLOWER
+                System.out.println("SOU Follower");
 
- 
+                
+                
+                received=dataProcessing.checkHeartBeats(timeStart);
+               
+                if(!received){
+                    flowSM.fsm = flowSM.candidate;
+                    System.out.println("SOU CANDIDATO");
+                }
+
+                break;
+
+            case 2: //CANDIDATE
+
+                candidate.startElection();
+
+                received=dataProcessing.resultElections(timeStart);
+
+                if(received){
+                    flowSM.fsm = flowSM.leader;
+                    System.out.println("I'M LEADER");
+                }
+
+                else{ //(electionsResult.contains("becomeFOLLOWER")){
+                    flowSM.fsm = flowSM.follower;      
+                    System.out.println("I'M FOLLOWER");
+                }
+
+                break;
+//                    
+//                case 3: //LEADER
+//                    
+//                    Thread t= new Thread();
+//                    t.start();
+//                    
+//                    break;
+//                
+            default: 
+
+                System.out.println("UNKNOWN STATE");
+                break;        
+         }
+      
+       }      
+
+    }
 }
