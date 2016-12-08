@@ -22,7 +22,7 @@ public class SimulacaoLeader {
         long tempoInicial=System.currentTimeMillis();
         while(true){
             long tempoAtual=System.currentTimeMillis();
-            System.out.println("tempo="+tempoInicial);
+            //System.out.println("tempo="+tempoInicial);
             if(tempoAtual-tempoInicial>tempoHeartBeat){
                 tempoInicial=tempoAtual;
                 leader.sendHeartBeat();

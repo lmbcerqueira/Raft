@@ -18,47 +18,79 @@ class DataProcessing {
     private final ConcurrentLinkedQueue<Pair> queue;
 
     public DataProcessing(long timeOutFollower, long timeOutCandidate, ConcurrentLinkedQueue<Pair> queue) {
-        this.timeOutFollower = timeOutFollower;
-        this.timeOutCandidate = timeOutCandidate;
+        this.timeOutFollower = timeOutFollower/100;
+        this.timeOutCandidate = timeOutCandidate/100;
         this.queue = queue;
     }
- 
-    public boolean checkHeartBeats(long timeStart){
+    private boolean contains(String message){
+        return this.queue.peek().getMessage().contains(message);
+    } 
+    
+    public String checkHeartBeatsCandidate(long timeStart){
+        //A ESPERA DE HEARTBEATS: RECEBE HEART BEATS OU NAO E ELECTION
+        //RECEBE HEART BEATS RESPONDE COM HEARTBEATS SENAO MANDA ELECTION
+        //RECEBE ELECTION MANDA ANSWER
         String message="HELLO";
-        
-        while(this.queue.isEmpty()||this.queue.peek().getTime()<timeStart){
+        System.out.println("TIMEOUT="+timeOutFollower);
+        while(true){
             long x=System.currentTimeMillis()-timeStart;
-            if(x>timeOutFollower)
-                return false;
-            if(this.queue.isEmpty())
-                continue;
-               // System.out.println("FIFO VAZIA, timeout="+timeOutFollower+"  cuurentTime-timestart="+x);
-            else if(this.queue.peek().getTime()<timeStart){
-                this.queue.poll();
-               // System.out.println("FIFO VALORES ERRADOS, timeout="+timeOutFollower+"  cuurentTime-timestart="+x);
-            }  
-            else
-                continue;
-                //System.out.println("FIFO VALORES CERTOS, timeout="+timeOutFollower+"  cuurentTime-timestart="+x);
-        }
-        
-//        do{
-//            while(this.queue.peek().getTime()<timeStart)
-//                this.queue.poll();
-//            System.out.println("FIFO COM VALORES ERRADOS");
-//        }while(!this.queue.isEmpty());
-        
-        
-        
-        
-        while(!this.queue.isEmpty()){
-           if(this.queue.poll().getMessage().contains(message)){
-               System.out.println("TINHA UM HELLO");
-               return true; 
+            float xSeconds=x/1000F; //time in seconds
+            if(xSeconds>timeOutFollower){
+                System.out.println("Ja passou :"+xSeconds);
+                return "ELECTION";
             }
+            else if(this.queue.isEmpty());
+                
+            else if(this.queue.peek().getTime()<timeStart)
+                this.queue.poll();
+            else if(contains("HELLO")){
+                this.queue.poll();
+                return "HEARTBEATS";
+            }
+            else if(contains("ELECTION")){
+                this.queue.poll();
+                return "ANSWER";
+            }
+            else if(!(contains("HELLO")||contains("ELECTION"))){
+                this.queue.poll();
+            }     
+            
+
         }
-        return false;
         
+//        while(this.queue.isEmpty()||this.queue.peek().getTime()<timeStart){
+//            long x=System.currentTimeMillis()-timeStart;
+//            if(x>timeOutFollower)
+//                return false;
+//            if(this.queue.isEmpty())
+//                continue;
+//               // System.out.println("FIFO VAZIA, timeout="+timeOutFollower+"  cuurentTime-timestart="+x);
+//            else if(this.queue.peek().getTime()<timeStart){
+//                this.queue.poll();
+//               // System.out.println("FIFO VALORES ERRADOS, timeout="+timeOutFollower+"  cuurentTime-timestart="+x);
+//            }  
+//            else
+//                continue;
+//                //System.out.println("FIFO VALORES CERTOS, timeout="+timeOutFollower+"  cuurentTime-timestart="+x);
+//        }
+//        
+////        do{
+////            while(this.queue.peek().getTime()<timeStart)
+////                this.queue.poll();
+////            System.out.println("FIFO COM VALORES ERRADOS");
+////        }while(!this.queue.isEmpty());
+//        
+//        
+//        
+//        
+//        while(!this.queue.isEmpty()){
+//           if(this.queue.poll().getMessage().contains(message)){
+//               System.out.println("TINHA UM HELLO");
+//               return true; 
+//            }
+//        }
+//        return false;
+//        
         
 //        if(!this.queue.isEmpty()){
 //            while(this.queue.peek().getTime()<timeStart){
@@ -87,27 +119,38 @@ class DataProcessing {
 
     }
 
-    boolean resultElections(long timeStart) {
+    String resultElections(long timeStart) {
         int votes = 0;
-        
+        System.out.println("TIMEOUT="+timeOutCandidate);
         while(true){
             long x=System.currentTimeMillis()-timeStart;
-            if(x>timeOutCandidate)
-                return false;
-            else if(this.queue.isEmpty())
-                continue;
+            float xSeconds=x/1000F; //time in seconds
+            if(xSeconds>timeOutCandidate){
+                System.out.println("Ja passou :"+xSeconds);
+                votes=0;
+                return "tryAGAIN";
+            }
+            else if(this.queue.isEmpty());
+                
             else if(this.queue.peek().getTime()<timeStart)
                 this.queue.poll();
-            else if(this.queue.peek().getMessage().contains("ACCEPTED")){
+            else if(contains("ACCEPTED")){
                 votes++;
                 this.queue.poll();
-                if(votes>(this.numeroNos/2))
-                    return true;
+                if(votes>(this.numeroNos/2)){
+                    votes=0;
+                    return "ACCEPTED";
+                }
             }
-            else if(this.queue.peek().getMessage().contains("REJECTED")){
+            else if(contains("REJECTED")){
                 this.queue.poll();
-                return false;
-            }     
+                votes=0;
+                return "REJECTED";
+            }
+            else if(!(contains("ACCEPTED")||contains("REJECTED"))){
+                this.queue.poll();
+            }  
+            
             
         }
         

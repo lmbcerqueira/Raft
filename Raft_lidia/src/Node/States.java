@@ -39,20 +39,28 @@ public class States {
         state = flowSM.getStateMachine();
            //Guardar o valor do time start
         long timeStart = System.currentTimeMillis();
-        boolean received;
+        String received;
         switch (state){
             case 1: //FOLLOWER
                 System.out.println("SOU Follower");
 
                 
                 
-                received=dataProcessing.checkHeartBeats(timeStart);
-               
-                if(!received){
-                    flowSM.fsm = flowSM.candidate;
-                    System.out.println("SOU CANDIDATO");
+                received=dataProcessing.checkHeartBeatsCandidate(timeStart);
+                switch(received){
+                    case "HEARTBEATS":
+                        System.out.println("RECEBI UM HeartBeat");
+                    break;
+                    case "ANSWER":
+                        System.out.println("RECEBI UM ELECTION");
+                        
+                    break;
+                    case "ELECTION":
+                        flowSM.fsm = flowSM.candidate;
+                        System.out.println("SOU CANDIDATO");
                 }
-
+               
+                
                 break;
 
             case 2: //CANDIDATE
@@ -61,24 +69,29 @@ public class States {
 
                 received=dataProcessing.resultElections(timeStart);
 
-                if(received){
-                    flowSM.fsm = flowSM.leader;
-                    System.out.println("I'M LEADER");
-                }
-
-                else{ //(electionsResult.contains("becomeFOLLOWER")){
-                    flowSM.fsm = flowSM.follower;      
-                    System.out.println("I'M FOLLOWER");
+                switch(received){
+                    case "tryAGAIN":
+                        flowSM.fsm = flowSM.candidate;
+                        System.out.println("tentar de NOVO");
+                        break;
+                    case "ACCEPTED":
+                        flowSM.fsm = flowSM.leader;
+                        System.out.println("I'M LEADER");
+                        break;
+                    case "REJECTED":
+                        flowSM.fsm = flowSM.follower;
+                        System.out.println("I'M FOLLOWER");
+                        break;
                 }
 
                 break;
 //                    
-//                case 3: //LEADER
-//                    
+                case 3: //LEADER
+                    
 //                    Thread t= new Thread();
 //                    t.start();
-//                    
-//                    break;
+                    
+                    break;
 //                
             default: 
 
