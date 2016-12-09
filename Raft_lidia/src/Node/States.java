@@ -7,18 +7,19 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class States {
     
-     
+    private int term = 1;
+    
     public void States() throws IOException{
-        
-       Follower follower = new Follower();
-       Candidate candidate = new Candidate();
-       Leader leader = new Leader();
-         
+   
        FlowStateMachine flowSM = new FlowStateMachine();
        
        //Processamento do FIFO
        ConcurrentLinkedQueue<Pair> queue = new ConcurrentLinkedQueue<>();
-       DataProcessing dataProcessing = new DataProcessing(follower.getTimeout(),candidate.getTimeout(),queue);
+       //DataProcessing dataProcessing = new DataProcessing(follower.getTimeout(),candidate.getTimeout(),queue);
+       
+       Follower follower = new Follower(queue);
+       Candidate candidate = new Candidate(queue);
+       Leader leader = new Leader();
        
        //Parametros da comunicaçao UDP
        int port = follower.comModule.port;
@@ -33,66 +34,68 @@ public class States {
        flowSM.setFollower();
        
        int state;
+       String nextState,info;
        
        while(true){
            
         state = flowSM.getStateMachine();
            //Guardar o valor do time start
         long timeStart = System.currentTimeMillis();
-        String received;
+        
         switch (state){
             case 1: //FOLLOWER
-                System.out.println("SOU Follower");
-
+                     
+                info = follower.cycle(timeStart,this.term);
+                String[] parts = info.split("@");
+                nextState=parts[0];
+                this.term=Integer.parseInt(parts[1]);//termo recebido
                 
-                
-                received=dataProcessing.checkHeartBeatsCandidate(timeStart);
-                switch(received){
-                    case "HEARTBEATS":
-                        System.out.println("RECEBI UM HeartBeat");
+                switch (nextState){
+                    case "FOLLOWER":
+                        flowSM.setFollower();
                     break;
-                    case "ANSWER":
-                        System.out.println("RECEBI UM ELECTION");
-                        
+                    case "CANDIDATE":
+                        flowSM.setCandidate();
+                    break; 
+                    case "newLeaderAccepted":
+                        flowSM.setFollower();
                     break;
-                    case "ELECTION":
-                        flowSM.fsm = flowSM.candidate;
-                        System.out.println("SOU CANDIDATO");
                 }
-               
                 
                 break;
 
             case 2: //CANDIDATE
-
-                candidate.startElection();
-
-                received=dataProcessing.resultElections(timeStart);
-
-                switch(received){
-                    case "tryAGAIN":
-                        flowSM.fsm = flowSM.candidate;
-                        System.out.println("tentar de NOVO");
+                
+                nextState = candidate.cycle(timeStart,this.term);
+                
+                switch(nextState){
+                    case "FOLLOWER":
+                        flowSM.setFollower();
                         break;
-                    case "ACCEPTED":
-                        flowSM.fsm = flowSM.leader;
-                        System.out.println("I'M LEADER");
+                    case "CANDIDATE":
+                        flowSM.setCandidate();
                         break;
-                    case "REJECTED":
-                        flowSM.fsm = flowSM.follower;
-                        System.out.println("I'M FOLLOWER");
+                    case "LEADER":
+                        flowSM.setLeader();
                         break;
                 }
 
                 break;
-//                    
-                case 3: //LEADER
+                
+            case 3: //LEADER
+                nextState = leader.cycle(timeStart,this.term);
+                
+                switch(nextState){
+                    case "FOLLOWER":
+                        flowSM.setFollower();
+                        break;
+                    case "LEADER":
+                        flowSM.setLeader();
+                        break; 
+                }
                     
-//                    Thread t= new Thread();
-//                    t.start();
-                    
-                    break;
-//                
+                break;
+              
             default: 
 
                 System.out.println("UNKNOWN STATE");

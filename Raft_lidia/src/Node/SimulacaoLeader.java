@@ -25,7 +25,7 @@ public class SimulacaoLeader {
             //System.out.println("tempo="+tempoInicial);
             if(tempoAtual-tempoInicial>tempoHeartBeat){
                 tempoInicial=tempoAtual;
-                leader.sendHeartBeat();
+                leader.sendHeartBeat(1);//TERM 1---ALTERAR
             }
         }
             

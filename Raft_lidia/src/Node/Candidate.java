@@ -2,15 +2,20 @@
 package Node;
 
 import java.io.IOException;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Candidate {
     
     private final ComunicationUDP comModule;
-     private final long timeout;
+    private final long timeout;
+    private final ConcurrentLinkedQueue<Pair> queue;
+    private final DataProcessing dataProcessing;
      
-    public Candidate() throws IOException {
+    public Candidate(ConcurrentLinkedQueue<Pair> queue) throws IOException {
         this.comModule = new ComunicationUDP();
-        this.timeout=this.getTimeout();
+        this.timeout = this.getTimeout();
+        this.queue = queue;
+        this.dataProcessing = new DataProcessing(this.timeout, this.queue);
     }
     
     public long getTimeout(){
@@ -26,7 +31,7 @@ public class Candidate {
         String electionString;
         electionString = "ELECTION";
 
-        this.comModule.sendData(electionString); 
+        this.comModule.sendMessageBroadcast(electionString); 
     }
     
     public String resultsElection() throws IOException{
@@ -34,6 +39,33 @@ public class Candidate {
         String receivedElection;
         
         return "ola";
+        
+    }
+    
+    public String cycle(long timeStart, int term) throws IOException{
+        
+        String received;
+        String nextState = "CANDIDATE";
+        startElection();
+
+        received = dataProcessing.resultElections(timeStart);
+
+        switch(received){
+            case "tryAGAIN":
+                nextState = "CANDIDATE";
+                System.out.println("tentar de NOVO");
+                break;
+            case "ACCEPTED":
+                nextState = "LEADER";
+                System.out.println("I'M LEADER");
+                break;
+            case "REJECTED":
+                nextState = "FOLLOWER";
+                System.out.println("I'M FOLLOWER");
+                break;
+        }
+        
+        return nextState;
         
     }
 }

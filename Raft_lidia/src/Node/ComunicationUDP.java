@@ -27,7 +27,7 @@ class ComunicationUDP  {
     
 
     
-     public void sendData(String message) throws IOException {
+    public void sendMessageBroadcast(String message) throws IOException { //SUGESTÃo: alterar para sendMessageMulticast
             
         System.out.println("send::::::VAI MANDAR DADOS");      
        
@@ -41,8 +41,12 @@ class ComunicationUDP  {
         System.out.println("send::::::ENVIADO  ->"+message); 
             
     }
+    
+    public void sendMessage(String message){
+        
+    }
 
-     public void leaveGroup() throws IOException{
+    public void leaveGroup() throws IOException{
         s.leaveGroup(serverIPAddress);
         s.close();
      }
