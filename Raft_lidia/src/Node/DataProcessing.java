@@ -15,32 +15,39 @@ class DataProcessing {
         return this.queue.peek().getMessage().contains(message);
     } 
     
-    public String checkHeartBeatsCandidate(long timeStart){ //ver questão de 1970
+    public String checkHeartBeatsandCandidate(long timeStart){ //ver questão de 1970
         //A ESPERA DE HEARTBEATS: RECEBE HEART BEATS OU NAO E ELECTION
         //RECEBE HEART BEATS RESPONDE COM HEARTBEATS SENAO MANDA ELECTION
         //RECEBE ELECTION MANDA ANSWER
         
         String message="HELLO";
         System.out.println("TIMEOUT="+timeOut);
+        String inet;
+        int receivedTerm;
         
         while(true){
             long x = System.currentTimeMillis() - timeStart;
             float xSeconds=x/1000F; //time in seconds
             if(xSeconds > timeOut){
+                inet="NADA";
                 System.out.println("Ja passou :" + xSeconds);
-                return "TIMEOUT";
+                return "TIMEOUT@"+inet+"@-1";
             }
             else if(this.queue.isEmpty());
                 
             else if(this.queue.peek().getTime()<timeStart)
                 this.queue.poll();
             else if(contains("HELLO")){
+                receivedTerm=this.queue.peek().getTerm();
+                inet=this.queue.peek().getInet().toString();
                 this.queue.poll();
-                return "HEARTBEATS";
+                return "HEARTBEATS@"+inet+"@"+Integer.toString(receivedTerm);
             }
             else if(contains("ELECTION")){
+                receivedTerm=this.queue.peek().getTerm();
+                inet=this.queue.peek().getInet().toString();
                 this.queue.poll();
-                return "REQUESTVOTE";
+                return "REQUESTVOTE@"+inet+"@"+Integer.toString(receivedTerm);
             }
             else if(!(contains("HELLO")||contains("ELECTION"))){
                 this.queue.poll();

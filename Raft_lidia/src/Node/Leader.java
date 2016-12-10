@@ -29,7 +29,7 @@ public class Leader {
     public void sendHeartBeat(int term) throws IOException{
         
         String heartBeatString;
-        heartBeatString = "HELLO";
+        heartBeatString = "HELLO@"+Integer.toString(term);
         
         this.comModule.sendMessageBroadcast(heartBeatString); //com que frequência?????
     }
