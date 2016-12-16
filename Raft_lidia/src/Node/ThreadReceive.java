@@ -24,6 +24,8 @@ public class ThreadReceive extends Thread {
     public void run() {
         long time;
         MulticastSocket socket;
+        InetAddress inet=null;
+        int term;
         try {
             socket = new MulticastSocket(this.port);
             
@@ -34,12 +36,16 @@ public class ThreadReceive extends Thread {
                 DatagramPacket pack = new DatagramPacket(buf, buf.length);
                 
                 socket.receive(pack);
-                
+                inet=pack.getAddress();
                 byte[] bytes = pack.getData();
-                String message = new String(bytes); 
+                String messageAndTerm = new String(bytes); 
+                String[] parts = messageAndTerm.split("@");
+                String message=parts[0];
+                String Term=parts[1];
+                term=Integer.valueOf(Term);
                 time=System.currentTimeMillis();
-               
-                Pair pair=new Pair(time,message);
+                
+                Pair pair=new Pair(time,message,inet,term);
                 queue.add(pair);
             }
    

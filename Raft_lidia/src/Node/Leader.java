@@ -29,6 +29,14 @@ public class Leader {
         
         return min_value + (int)(Math.random() * ((max_value - min_value) + 1));
     }
+    
+    public void sendHeartBeat(int term) throws IOException{
+        
+        String heartBeatString;
+        heartBeatString = "HELLO@"+Integer.toString(term);
+        
+        this.comModule.sendMessageBroadcast(heartBeatString); //com que frequência?????
+    }
 
     public void cycle(int term) {
         

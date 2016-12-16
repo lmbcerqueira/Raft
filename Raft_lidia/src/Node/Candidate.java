@@ -26,27 +26,18 @@ public class Candidate {
         return min_value + (int)(Math.random() * ((max_value - min_value) + 1));
     }
       
-    public void startElection() throws IOException{
+    public void startElection(int term) throws IOException{
         
-        String electionString;
-        electionString = "ELECTION";
+        String electionString= "ELECTION@"+Integer.toString(term);
 
         this.comModule.sendMessageBroadcast(electionString); 
-    }
-    
-    public String resultsElection() throws IOException{
-        
-        String receivedElection;
-        
-        return "ola";
-        
     }
     
     public String cycle(long timeStart, int term) throws IOException{
         
         String received;
         String nextState = "CANDIDATE";
-        startElection();
+        startElection(term);
 
         received = dataProcessing.resultElections(timeStart);
 

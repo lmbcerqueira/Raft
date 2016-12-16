@@ -2,6 +2,8 @@
 package Node;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 
@@ -19,28 +21,39 @@ public class Follower extends Thread {
         this.dataProcessing = new DataProcessing(this.timeout, this.queue);
     }
     
-    public String cycle(long timeStart, int term){
+    public String cycle(long timeStart, int term) throws UnknownHostException, IOException{
         
         String received;
         String nextState = "FOLLOWER";
         
-        received = dataProcessing.checkHeartBeatsCandidate(timeStart);
-                
+        String receivedAndInetAndTerm = dataProcessing.checkHeartBeatsandCandidate(timeStart);
+        String[] parts = receivedAndInetAndTerm.split("@");
+
+        received=parts[0];
+        String stringInet=parts[1];
+        int receivedTerm=Integer.valueOf(parts[2]);
+        System.out.println(received+"\n"+stringInet+"\n"+receivedTerm);
+        
+       
         switch(received){
             case "HEARTBEATS":
                 System.out.println("RECEBI UM HeartBeat");
                 break;
             case "REQUESTVOTE":
+                
+                InetAddress inet=InetAddress.getByName(stringInet);
+                
                 String answer = null;
                 System.out.println("RECEBI UM RequestVote");  
-                //answer = follower.vote(term, receivedTerm); //receivedTermMissing
+                answer = vote(term, receivedTerm); 
                 switch (answer) {
                     case "REJECTED":
-                        
+                        String message="FOLLOWER@"+Integer.toString(term);
+                        comModule.sendMessage(message, inet);
                         break;
                     case "ACCEPTED":
                         nextState="newLeaderAccepted";
-                        //this.term = receivedTerm;
+                        term = receivedTerm;
                         break;
                 }
                 break;
@@ -50,7 +63,7 @@ public class Follower extends Thread {
                 break;
         }
         
-        return nextState;
+        return nextState+"@"+Integer.toString(term);
     }
     
     public long getTimeout(){
@@ -71,12 +84,7 @@ public class Follower extends Thread {
             
         else
             answer = "REJECTED"; 
-        
-        answer = answer+"@"+ Integer.toString(term);
-            
-        this.comModule.sendMessage(answer); 
         return answer;
     }
    
-    
 }
