@@ -11,6 +11,7 @@ class DataProcessing {
         this.timeOut = timeOut/100;
         this.queue = queue;
     }
+    
     private boolean contains(String message){
         return this.queue.peek().getMessage().contains(message);
     } 
@@ -51,7 +52,7 @@ class DataProcessing {
 
     }
 
-    String resultElections(long timeStart) {
+    public String resultElections(long timeStart) {
         int votes = 0;
         System.out.println("TIMEOUT="+timeOut);
         
@@ -91,6 +92,26 @@ class DataProcessing {
         }
         
 
+    }
+    
+    public void checkIncomingLeaderMsg(int term){
+        
+        int receivedTerm;
+        String pair;
+        
+        while(true){
+            if (this.queue.isEmpty())
+                continue;
+            else{
+                pair = this.queue.poll().getMessage();
+                String[] parts = pair.split("@");
+                receivedTerm = Integer.parseInt(parts[1]);
+                
+                if(receivedTerm > term)
+                    break;   
+            }  
+        }
+        
     }
     
 }

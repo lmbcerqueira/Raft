@@ -19,7 +19,7 @@ public class States {
        
        Follower follower = new Follower(queue);
        Candidate candidate = new Candidate(queue);
-       Leader leader = new Leader();
+       Leader leader = new Leader(queue);
        
        //Parametros da comunicaçao UDP
        int port = follower.comModule.port;
@@ -39,12 +39,12 @@ public class States {
        while(true){
            
         state = flowSM.getStateMachine();
+        System.out.println("STATE:" + state);
            //Guardar o valor do time start
         long timeStart = System.currentTimeMillis();
         
         switch (state){
             case 1: //FOLLOWER
-                     
                 info = follower.cycle(timeStart,this.term);
                 String[] parts = info.split("@");
                 nextState=parts[0];
@@ -55,7 +55,7 @@ public class States {
                         flowSM.setFollower();
                     break;
                     case "CANDIDATE":
-                        flowSM.setCandidate();
+                        flowSM.setCandidate(); //ONDE AUMENTAMOS O TERM???
                     break; 
                     case "newLeaderAccepted":
                         flowSM.setFollower();
@@ -82,22 +82,12 @@ public class States {
 
                 break;
                 
-            case 3: //LEADER
-                nextState = leader.cycle(timeStart,this.term);
-                
-                switch(nextState){
-                    case "FOLLOWER":
-                        flowSM.setFollower();
-                        break;
-                    case "LEADER":
-                        flowSM.setLeader();
-                        break; 
-                }
-                    
+            case 3: //LEADER    
+                leader.cycle(this.term); // só retorna de cycle quando tiver de mudar para follower
+                flowSM.setFollower();
                 break;
               
             default: 
-
                 System.out.println("UNKNOWN STATE");
                 break;        
          }

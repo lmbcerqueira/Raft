@@ -66,10 +66,9 @@ public class Follower extends Thread {
         
         String answer = null;
         
-        if (receivedTerm > term){
+        if (receivedTerm > term)
             answer = "ACCEPTED";
             
-        }
         else
             answer = "REJECTED"; 
         

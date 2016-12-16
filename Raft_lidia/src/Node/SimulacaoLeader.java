@@ -17,17 +17,17 @@ public class SimulacaoLeader {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException {
-        Leader leader=new Leader();
-        long tempoHeartBeat=leader.getHeartBeat();
-        long tempoInicial=System.currentTimeMillis();
-        while(true){
-            long tempoAtual=System.currentTimeMillis();
-            //System.out.println("tempo="+tempoInicial);
-            if(tempoAtual-tempoInicial>tempoHeartBeat){
-                tempoInicial=tempoAtual;
-                leader.sendHeartBeat(1);//TERM 1---ALTERAR
-            }
-        }
+//        Leader leader=new Leader();
+//        long tempoHeartBeat=leader.getHeartBeat();
+//        long tempoInicial=System.currentTimeMillis();
+//        while(true){
+//            long tempoAtual=System.currentTimeMillis();
+//            //System.out.println("tempo="+tempoInicial);
+//            if(tempoAtual-tempoInicial>tempoHeartBeat){
+//                tempoInicial=tempoAtual;
+//                leader.sendHeartBeat(1);//TERM 1---ALTERAR
+//            }
+//        }
             
     }
     
