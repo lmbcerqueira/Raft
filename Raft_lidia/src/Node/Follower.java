@@ -16,7 +16,7 @@ public class Follower extends Thread {
 
     public Follower(ConcurrentLinkedQueue<Pair> queue) throws IOException {
         this.comModule = new ComunicationUDP();
-        this.timeout=this.getTimeout();
+        this.timeout = this.getTimeout();
         this.queue = queue;
         this.dataProcessing = new DataProcessing(this.timeout, this.queue);
     }
@@ -30,8 +30,8 @@ public class Follower extends Thread {
         String[] parts = receivedAndInetAndTerm.split("@");
 
         received=parts[0];
-        String stringInet=parts[1];
-        int receivedTerm=Integer.valueOf(parts[2]);
+        String stringInet = parts[1];
+        int receivedTerm = Integer.valueOf(parts[2]);
         System.out.println(received+"\n"+stringInet+"\n"+receivedTerm);
         
        
@@ -41,18 +41,18 @@ public class Follower extends Thread {
                 break;
             case "REQUESTVOTE":
                 
-                InetAddress inet=InetAddress.getByName(stringInet);
-                
+                InetAddress inet=InetAddress.getByName(stringInet); //given the host name 
+                System.out.println(inet.getHostName());
                 String answer = null;
                 System.out.println("RECEBI UM RequestVote");  
                 answer = vote(term, receivedTerm); 
                 switch (answer) {
                     case "REJECTED":
-                        String message="FOLLOWER@"+Integer.toString(term);
+                        String message = "FOLLOWER@" + Integer.toString(term);
                         comModule.sendMessage(message, inet);
                         break;
                     case "ACCEPTED":
-                        nextState="newLeaderAccepted";
+                        nextState = "newLeaderAccepted";
                         term = receivedTerm;
                         break;
                 }

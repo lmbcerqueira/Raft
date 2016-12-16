@@ -11,7 +11,7 @@ class ComunicationUDP  {
     int port = 5000;
     String group = "225.4.5.6"; // Which address
         
-    InetAddress serverIPAddress=InetAddress.getByName(group);; 
+    InetAddress serverIPAddress=InetAddress.getByName(group);
   
     MulticastSocket s;
 

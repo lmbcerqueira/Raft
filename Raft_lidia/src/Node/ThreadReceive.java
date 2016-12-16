@@ -37,13 +37,13 @@ public class ThreadReceive extends Thread {
                 
                 socket.receive(pack);
                 inet=pack.getAddress();
+                System.out.println("THREADrECEIVE:"+inet);
                 byte[] bytes = pack.getData();
                 String messageAndTerm = new String(bytes); 
                 String[] parts = messageAndTerm.split("@");
-                String message=parts[0];
-                String Term=parts[1];
-                term=Integer.valueOf(Term);
-                time=System.currentTimeMillis();
+                String message = parts[0];
+                term = Integer.parseInt(parts[1].trim());
+                time = System.currentTimeMillis();
                 
                 Pair pair=new Pair(time,message,inet,term);
                 queue.add(pair);

@@ -66,7 +66,7 @@ public class States {
 
             case 2: //CANDIDATE
                 
-                nextState = candidate.cycle(timeStart,this.term);
+                nextState = candidate.cycle(timeStart, ++this.term);
                 
                 switch(nextState){
                     case "FOLLOWER":
