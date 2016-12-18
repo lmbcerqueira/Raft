@@ -23,47 +23,49 @@ public class Follower extends Thread {
     
     public String cycle(long timeStart, int term) throws UnknownHostException, IOException{
         
-        String received;
+        String msgReceived;
+        String msgToSend;
         String nextState = "FOLLOWER";
         
-        String receivedAndInetAndTerm = dataProcessing.checkHeartBeatsandCandidate(timeStart);
-        String[] parts = receivedAndInetAndTerm.split("@");
+        String receivedInetAndTerm = dataProcessing.checkHeartBeatsandCandidate(timeStart);
+        String[] parts = receivedInetAndTerm.split("@");
 
-        received=parts[0];
+        msgReceived = parts[0];
         String stringInet = parts[1];
         int receivedTerm = Integer.valueOf(parts[2]);
-        System.out.println(received+"\n"+stringInet+"\n"+receivedTerm);
+        System.out.println("FOLLOWER: message received: " + msgReceived + ";" + stringInet + ";" + receivedTerm);
         
        
-        switch(received){
+        switch(msgReceived){
             case "HEARTBEATS":
-                System.out.println("RECEBI UM HeartBeat");
+                System.out.println("FOLLOWER: RECEBI UM HeartBeat");
                 break;
-            case "REQUESTVOTE":
                 
-                InetAddress inet=InetAddress.getByName(stringInet); //given the host name 
-                System.out.println(inet.getHostName());
-                String answer = null;
-                System.out.println("RECEBI UM RequestVote");  
-                answer = vote(term, receivedTerm); 
+            case "REQUESTVOTE":
+                InetAddress inet = InetAddress.getByName(stringInet); //given the host name 
+                //System.out.println(inet.getHostName()); 
+                String answer = vote(term, receivedTerm); 
                 switch (answer) {
                     case "REJECTED":
-                        String message = "FOLLOWER@" + Integer.toString(term);
-                        comModule.sendMessage(message, inet);
+                        msgToSend = "FOLLOWER@" + Integer.toString(term);
+                        comModule.sendMessage(msgToSend, inet);
+                        System.out.println("FOLLOWER: RECEBI UM RequestVote - Rejeitei");
                         break;
                     case "ACCEPTED":
                         nextState = "newLeaderAccepted";
                         term = receivedTerm;
+                        msgToSend = "ACCEPTED@" + Integer.toString(term);
+                        comModule.sendMessage(msgToSend, inet);
+                        System.out.println("FOLLOWER: RECEBI UM RequestVote - ACEITEI");
                         break;
                 }
                 break;
             case "TIMEOUT":
                 nextState = "CANDIDATE";
-                System.out.println("SOU CANDIDATO");
                 break;
         }
         
-        return nextState+"@"+Integer.toString(term);
+        return nextState + "@" + Integer.toString(term);
     }
     
     public long getTimeout(){

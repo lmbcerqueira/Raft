@@ -40,7 +40,8 @@ public class States {
            
         state = flowSM.getStateMachine();
         System.out.println("STATE:" + state);
-           //Guardar o valor do time start
+        
+        //Guardar o valor do time start
         long timeStart = System.currentTimeMillis();
         
         switch (state){

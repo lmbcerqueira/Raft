@@ -44,15 +44,12 @@ public class Candidate {
         switch(received){
             case "tryAGAIN":
                 nextState = "CANDIDATE";
-                System.out.println("tentar de NOVO");
                 break;
             case "ACCEPTED":
                 nextState = "LEADER";
-                System.out.println("I'M LEADER");
                 break;
             case "REJECTED":
                 nextState = "FOLLOWER";
-                System.out.println("I'M FOLLOWER");
                 break;
         }
         

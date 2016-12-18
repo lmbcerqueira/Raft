@@ -46,7 +46,7 @@ public class Leader {
        
         //this.dataProcessing.checkIncomingLeaderMsg(term); //retorna qd tiver de mudar para FOLLOWER
         
-        System.out.println("Vou sair do Leadercycle");
+        System.out.println("LEADER : Vou sair do Leadercycle");
         timer.cancel();
     }
     

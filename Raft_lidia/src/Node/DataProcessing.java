@@ -1,5 +1,6 @@
 package Node;
 
+import java.net.InetAddress;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 class DataProcessing {
@@ -21,55 +22,62 @@ class DataProcessing {
         //RECEBE HEART BEATS RESPONDE COM HEARTBEATS SENAO MANDA ELECTION
         //RECEBE ELECTION MANDA ANSWER
         
-        //String message="HELLO";
-        System.out.println("TIMEOUT="+timeOut);
-        String inet;
+        //System.out.println("TIMEOUT="+timeOut);
+        InetAddress inet;
         int receivedTerm;
+        String IPsender;
         
         while(true){
+            
             long x = System.currentTimeMillis() - timeStart;
             float xSeconds=x/1000F; //time in seconds
-            if(xSeconds > timeOut){
-                inet = "NADA";
-                //System.out.println("Ja passou :" + xSeconds);
-                return "TIMEOUT@" + inet + "@-1";
-            }
+            
+            if(xSeconds > timeOut)
+                return "TIMEOUT@" + "TIMEOUT" + "@1"; // dois ultimos elementos don't care
+             
             else if(this.queue.isEmpty());
                 
-            else if(this.queue.peek().getTime()<timeStart)
+            else if(this.queue.peek().getTime() < timeStart)
                 this.queue.poll();
+            
             else if(contains("HELLO")){
                 receivedTerm = this.queue.peek().getTerm();
-                inet = this.queue.peek().getInet().toString();
+                inet = this.queue.peek().getInet();
+                IPsender = inet.getHostAddress();
+                System.out.println("Data Processing - received IP - " + IPsender);
                 this.queue.poll();
-                return "HEARTBEATS@"+inet+"@"+Integer.toString(receivedTerm);
+                return "HEARTBEATS@" + IPsender + "@" + Integer.toString(receivedTerm);
             }
+            
             else if(contains("ELECTION")){
                 receivedTerm = this.queue.peek().getTerm();
-                inet = this.queue.peek().getInet().toString();
+                inet = this.queue.peek().getInet();
+                IPsender = inet.getHostAddress();
+                System.out.println("Data Processing - received IP - " + IPsender);
                 this.queue.poll();
-                System.out.println("dataPROCESSING:"+inet);
-                return "REQUESTVOTE@"+inet+"@"+Integer.toString(receivedTerm);
+                return "REQUESTVOTE@" + IPsender + "@" + Integer.toString(receivedTerm);
             }
-            else if(!(contains("HELLO")||contains("ELECTION"))){
+            
+            else if(!(contains("HELLO") || contains("ELECTION"))){
                 this.queue.poll();
             }     
             
-
         }
 
     }
 
     public String resultElections(long timeStart) {
+        
         int votes = 0;
-        System.out.println("TIMEOUT="+timeOut);
+        System.out.println("DataProcess TIMEOUT= " + timeOut);
         
         while(true){
             
             long x = System.currentTimeMillis()-timeStart;
             float xSeconds=x/1000F; //time in seconds
+            
             if(xSeconds > timeOut){
-                System.out.println("Ja passou :"+xSeconds);
+                System.out.println("Ja passou :" + xSeconds);
                 return "tryAGAIN";
             }
             else if(this.queue.isEmpty());

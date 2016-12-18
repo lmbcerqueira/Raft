@@ -27,8 +27,6 @@ class ComunicationUDP  {
 
     
     public void sendMessageBroadcast(String message) throws IOException { //SUGESTÃo: alterar para sendMessageMulticast
-            
-        System.out.println("send::::::VAI MANDAR DADOS___BROADCAST");      
        
         //prepare buffer to send
         byte[] sendData = new byte[message.length()];
@@ -37,18 +35,19 @@ class ComunicationUDP  {
         DatagramPacket pack = new DatagramPacket(sendData, sendData.length, serverIPAddress, this.port);
         
         s.send(pack);
-        System.out.println("send::::::ENVIADO_BROADCAST  ->"+message); 
+        System.out.println("COMM send: BROADCAST  -> " + message); 
             
     }
     
     public void sendMessage(String message, InetAddress inet) throws SocketException, IOException{
+        
         DatagramSocket sendMessage = new DatagramSocket(this.port);
-        serverIPAddress=inet;
+        serverIPAddress = inet;
         
-        byte[] sendData = new byte[message.length()*8];//
-        sendData=message.getBytes();
+        byte[] sendData = new byte[message.length()*8];
+        sendData = message.getBytes();
         
-        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,serverIPAddress,this.port);
+        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverIPAddress,this.port);
         sendMessage.send(sendPacket);
         
     }

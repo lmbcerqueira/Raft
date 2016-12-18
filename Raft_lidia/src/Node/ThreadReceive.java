@@ -22,30 +22,38 @@ public class ThreadReceive extends Thread {
     }
        
     public void run() {
+        
         long time;
         MulticastSocket socket;
-        InetAddress inet=null;
+        InetAddress inet = null;
         int term;
+        
         try {
             socket = new MulticastSocket(this.port);
             
             socket.joinGroup(groupIP);
             
             while(true){
-                byte[] buf = new byte[1024];
-                DatagramPacket pack = new DatagramPacket(buf, buf.length);
                 
+                byte[] buf = new byte[1024];
+                
+                DatagramPacket pack = new DatagramPacket(buf, buf.length);
                 socket.receive(pack);
-                inet=pack.getAddress();
-                System.out.println("THREADrECEIVE:"+inet);
+                
+                inet = pack.getAddress();
+                String inetStr = inet.toString();
+                String[] parts = inetStr.split("/");
+                String senderIP = parts[1];
+                System.out.println("Thread Receive: " + senderIP);
+                
                 byte[] bytes = pack.getData();
                 String messageAndTerm = new String(bytes); 
-                String[] parts = messageAndTerm.split("@");
+                parts = messageAndTerm.split("@");
                 String message = parts[0];
                 term = Integer.parseInt(parts[1].trim());
                 time = System.currentTimeMillis();
                 
-                Pair pair=new Pair(time,message,inet,term);
+                Pair pair = new Pair(time, message, inet, term);
                 queue.add(pair);
             }
    
