@@ -27,7 +27,8 @@ class ComunicationUDP  {
 
     
     public void sendMessageBroadcast(String message) throws IOException { //SUGESTÃo: alterar para sendMessageMulticast
-       
+        
+        message = "BROADCAST@" + message;
         //prepare buffer to send
         byte[] sendData = new byte[message.length()];
         sendData = message.getBytes();
@@ -35,20 +36,25 @@ class ComunicationUDP  {
         DatagramPacket pack = new DatagramPacket(sendData, sendData.length, serverIPAddress, this.port);
         
         s.send(pack);
-        System.out.println("COMM send: BROADCAST  -> " + message); 
+        //System.out.println("COMM send: BROADCAST  -> " + message); 
             
     }
     
     public void sendMessage(String message, InetAddress inet) throws SocketException, IOException{
         
-        DatagramSocket sendMessage = new DatagramSocket(this.port);
-        serverIPAddress = inet;
-        
+        String inetStr = inet.toString();
+        String[] parts = inetStr.split("/");
+        String destinationIP = parts[1]; 
+                
+        message = destinationIP +  "@" + message;
+        System.out.println("DEBUG SEND " + message);
         byte[] sendData = new byte[message.length()*8];
         sendData = message.getBytes();
         
-        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverIPAddress,this.port);
-        sendMessage.send(sendPacket);
+        DatagramPacket pack = new DatagramPacket(sendData, sendData.length, serverIPAddress, this.port);
+        s.send(pack);
+
+        System.out.println("COM send uni" + message);
         
     }
 

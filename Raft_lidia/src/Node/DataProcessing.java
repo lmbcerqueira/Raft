@@ -4,7 +4,7 @@ import java.net.InetAddress;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 class DataProcessing {
-    private final int numeroNos=3;
+    private final int numeroNos=5;
     private final long timeOut;
     private final ConcurrentLinkedQueue<Pair> queue;
 
@@ -44,7 +44,7 @@ class DataProcessing {
                 receivedTerm = this.queue.peek().getTerm();
                 inet = this.queue.peek().getInet();
                 IPsender = inet.getHostAddress();
-                System.out.println("Data Processing - received IP - " + IPsender);
+                //System.out.println("Data Processing - received IP - " + IPsender);
                 this.queue.poll();
                 return "HEARTBEATS@" + IPsender + "@" + Integer.toString(receivedTerm);
             }
@@ -69,7 +69,6 @@ class DataProcessing {
     public String resultElections(long timeStart) {
         
         int votes = 0;
-        System.out.println("DataProcess TIMEOUT= " + timeOut);
         
         while(true){
             
@@ -77,7 +76,7 @@ class DataProcessing {
             float xSeconds=x/1000F; //time in seconds
             
             if(xSeconds > timeOut){
-                System.out.println("Ja passou :" + xSeconds);
+                
                 return "tryAGAIN";
             }
             else if(this.queue.isEmpty());
@@ -86,6 +85,7 @@ class DataProcessing {
                 this.queue.poll();
             
             else if(contains("ACCEPTED")){
+                System.out.println("CANDIDATO: recebi um voto");
                 votes++;
                 this.queue.poll();
                 if(votes > (this.numeroNos/2)) 
@@ -115,9 +115,8 @@ class DataProcessing {
             if (this.queue.isEmpty())
                 continue;
             else{
-                pair = this.queue.poll().getMessage();
-                String[] parts = pair.split("@");
-                receivedTerm = Integer.parseInt(parts[1]);
+                receivedTerm = this.queue.poll().getTerm();
+                System.out.println("DEBUG LEADER: " + receivedTerm);
                 
                 if(receivedTerm > term)
                     break;   

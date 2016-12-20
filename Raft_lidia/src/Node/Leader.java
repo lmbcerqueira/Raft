@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 
 public class Leader {
     
-    private final ComunicationUDP comModule;
+    public final ComunicationUDP comModule;
     private final long timeout;
     private final DataProcessing dataProcessing;
     private final ConcurrentLinkedQueue<Pair> queue;
@@ -42,32 +42,30 @@ public class Leader {
         
         // creating timer task and schedule
         Timer timer = new Timer();
-        timer.schedule(new sendHeartBeatTimer(term, this.comModule),100, 10000);  //heartbeatfreq >>>>>>> timeoutsfollowers
+        timer.schedule(new sendHeartBeatTimer(term),100, 10000);  //heartbeatfreq >>>>>>> timeoutsfollowers
        
-        //this.dataProcessing.checkIncomingLeaderMsg(term); //retorna qd tiver de mudar para FOLLOWER
+        this.dataProcessing.checkIncomingLeaderMsg(term); //retorna qd tiver de mudar para FOLLOWER
         
         System.out.println("LEADER : Vou sair do Leadercycle");
         timer.cancel();
     }
     
     //TIMER
-    class sendHeartBeatTimer extends TimerTask {
+    class sendHeartBeatTimer extends TimerTask  {
         
         private int term;
-        private final ComunicationUDP comModule;
         
-        sendHeartBeatTimer (int term, ComunicationUDP comModule){
+        sendHeartBeatTimer (int term){
             this.term = term;
-            this.comModule = comModule; //FEIO MAS NAO SEI COMO EVITAR
         }
 
         @Override
         public void run() {
             
             String heartBeatString = "HELLO" + "@" + Integer.toString(this.term);
-        
+            System.out.println("LEADER: send" + heartBeatString);
             try {
-                this.comModule.sendMessageBroadcast(heartBeatString);
+                Leader.this.comModule.sendMessageBroadcast(heartBeatString);
             } catch (IOException ex) {
                 Logger.getLogger(Leader.class.getName()).log(Level.SEVERE, null, ex);
             }

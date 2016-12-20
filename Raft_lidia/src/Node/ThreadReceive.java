@@ -1,7 +1,9 @@
 
 package Node;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
@@ -28,7 +30,30 @@ public class ThreadReceive extends Thread {
         InetAddress inet = null;
         int term;
         
+        String myIP = null;
+        
+        //get IP
+        try{
+            String[] cmd = {
+                "/bin/sh",
+                "-c",
+                "ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\\.){3}[0-9]*).*/\\2/p'"
+            };
+            
+            final Process p = Runtime.getRuntime().exec(cmd);
+            BufferedReader brinput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            for(;;){
+                myIP = brinput.readLine();
+                if (myIP != null)
+                    break;
+            }
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
+        
         try {
+            
+            System.out.println("MyIP:" + myIP);
             socket = new MulticastSocket(this.port);
             
             socket.joinGroup(groupIP);
@@ -44,17 +69,21 @@ public class ThreadReceive extends Thread {
                 String inetStr = inet.toString();
                 String[] parts = inetStr.split("/");
                 String senderIP = parts[1];
-                System.out.println("Thread Receive: " + senderIP);
+                
                 
                 byte[] bytes = pack.getData();
                 String messageAndTerm = new String(bytes); 
                 parts = messageAndTerm.split("@");
-                String message = parts[0];
-                term = Integer.parseInt(parts[1].trim());
-                time = System.currentTimeMillis();
-                
-                Pair pair = new Pair(time, message, inet, term);
-                queue.add(pair);
+                String to = parts[0];
+                if ( to.compareTo("BROADCAST")==0 || to.compareTo(myIP)==0){
+                    
+                    String message = parts[1];
+                    term = Integer.parseInt(parts[2].trim());
+                    time = System.currentTimeMillis();
+                    System.out.println("term="+term+" ; message="+message);
+                    Pair pair = new Pair(time, message, inet, term);
+                    queue.add(pair);
+                }
             }
    
         } catch (IOException ex) {

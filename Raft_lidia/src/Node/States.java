@@ -39,7 +39,7 @@ public class States {
        while(true){
            
         state = flowSM.getStateMachine();
-        System.out.println("STATE:" + state);
+        System.out.println("TERMO:" + this.term);
         
         //Guardar o valor do time start
         long timeStart = System.currentTimeMillis();
@@ -50,7 +50,7 @@ public class States {
                 String[] parts = info.split("@");
                 nextState=parts[0];
                 this.term=Integer.parseInt(parts[1]);//termo recebido
-                
+                System.out.println("STATES: TERMO="+this.term);
                 switch (nextState){
                     case "FOLLOWER":
                         flowSM.setFollower();

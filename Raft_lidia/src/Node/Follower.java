@@ -33,12 +33,13 @@ public class Follower extends Thread {
         msgReceived = parts[0];
         String stringInet = parts[1];
         int receivedTerm = Integer.valueOf(parts[2]);
-        System.out.println("FOLLOWER: message received: " + msgReceived + ";" + stringInet + ";" + receivedTerm);
+        System.out.println("FOLLOWER: message received: " + msgReceived + "; INET:" + stringInet + ";TERM:" + receivedTerm);
         
        
         switch(msgReceived){
             case "HEARTBEATS":
                 System.out.println("FOLLOWER: RECEBI UM HeartBeat");
+                term = receivedTerm;
                 break;
                 
             case "REQUESTVOTE":
@@ -54,7 +55,9 @@ public class Follower extends Thread {
                     case "ACCEPTED":
                         nextState = "newLeaderAccepted";
                         term = receivedTerm;
+                        System.out.println("FOLLOWER: Update term: "+ term);
                         msgToSend = "ACCEPTED@" + Integer.toString(term);
+                        System.out.println("DEBUG FOLLOWER: msgToSend " + msgToSend);
                         comModule.sendMessage(msgToSend, inet);
                         System.out.println("FOLLOWER: RECEBI UM RequestVote - ACEITEI");
                         break;
@@ -70,8 +73,8 @@ public class Follower extends Thread {
     
     public long getTimeout(){
                  
-        int min_value = 500;
-        int max_value = 1000;
+        int min_value = 3000;
+        int max_value = 4000;
         
         return min_value + (int)(Math.random() * ((max_value - min_value) + 1));
        
