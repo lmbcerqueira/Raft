@@ -38,16 +38,17 @@ public class Leader {
         this.comModule.sendMessageBroadcast(heartBeatString); //com que frequência?????
     }
 
-    public void cycle(int term) {
+    public int cycle(int term) {
         
         // creating timer task and schedule
         Timer timer = new Timer();
         timer.schedule(new sendHeartBeatTimer(term),100, 10000);  //heartbeatfreq >>>>>>> timeoutsfollowers
        
-        this.dataProcessing.checkIncomingLeaderMsg(term); //retorna qd tiver de mudar para FOLLOWER
+        int newTerm=this.dataProcessing.checkIncomingLeaderMsg(term); //retorna qd tiver de mudar para FOLLOWER
         
         System.out.println("LEADER : Vou sair do Leadercycle");
         timer.cancel();
+        return newTerm;
     }
     
     //TIMER

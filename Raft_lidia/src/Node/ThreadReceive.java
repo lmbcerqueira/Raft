@@ -51,6 +51,7 @@ public class ThreadReceive extends Thread {
             ex.printStackTrace();
         }
         
+        //filter messages        
         try {
             
             System.out.println("MyIP:" + myIP);

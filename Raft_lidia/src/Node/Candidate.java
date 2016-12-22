@@ -2,6 +2,7 @@
 package Node;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Candidate {
@@ -10,12 +11,14 @@ public class Candidate {
     private final long timeout;
     private final ConcurrentLinkedQueue<Pair> queue;
     private final DataProcessing dataProcessing;
+    private final int nNodes;
      
-    public Candidate(ConcurrentLinkedQueue<Pair> queue) throws IOException {
+    public Candidate(ConcurrentLinkedQueue<Pair> queue, int nNodes) throws IOException {
         this.comModule = new ComunicationUDP();
         this.timeout = this.getTimeout();
         this.queue = queue;
         this.dataProcessing = new DataProcessing(this.timeout, this.queue);
+        this.nNodes = nNodes;
     }
     
     public long getTimeout(){
@@ -39,7 +42,7 @@ public class Candidate {
         String nextState = "CANDIDATE";
         startElection(term);
 
-        received = dataProcessing.resultElections(timeStart);
+        received = resultElections(timeStart, term);
 
         switch(received){
             case "tryAGAIN":
@@ -59,4 +62,61 @@ public class Candidate {
         return nextState;
         
     }
+
+    public String resultElections(long timeStart, int term) throws IOException {
+        
+        int votes = 0;
+        InetAddress inet;
+        String IPsender;
+        
+        
+        while(true){
+            
+            long x = System.currentTimeMillis()-timeStart;
+            float xSeconds=x/1000F; //time in seconds
+            
+            if(xSeconds > this.timeout)
+                return "tryAGAIN";
+            
+            else if(this.queue.isEmpty());
+                
+            else if(this.queue.peek().getTime()<timeStart)
+                this.queue.poll();
+            
+            else if(this.dataProcessing.contains("ACCEPTED")){
+                System.out.println("CANDIDATO: recebi um voto");
+                votes++;
+                this.queue.poll();
+                if(votes > (this.nNodes/2)) 
+                    return "ACCEPTED";
+            }
+            
+            else if(this.dataProcessing.contains("REJECTED")){
+                this.queue.poll();
+                return "REJECTED";
+            }
+            
+            else if(this.dataProcessing.contains("HELLO")){
+                
+                // se houver um líder com termo inferior enviar erro
+                if(!this.dataProcessing.isReceivedTermUPdated(term)){
+                    inet = this.queue.peek().getInet();
+                    IPsender = inet.getHostAddress();
+                    this.queue.poll();  
+                    String msgToSend = "ERROR@" + IPsender + "@" + Integer.toString(term);
+                    this.comModule.sendMessage(msgToSend, inet);
+                }
+                // se houver um lider com um termo maior passa a follower
+                else{
+                    this.queue.poll();  
+                    return "REJECTED";
+                }     
+            }
+            
+            else if(!(this.dataProcessing.contains("ACCEPTED") || this.dataProcessing.contains("REJECTED"))){
+                this.queue.poll();
+            }  
+        }
+    }
+    
 }

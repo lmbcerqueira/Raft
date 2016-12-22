@@ -27,27 +27,29 @@ public class Follower extends Thread {
         String msgToSend;
         String nextState = "FOLLOWER";
         
-        String receivedInetAndTerm = dataProcessing.checkHeartBeatsandCandidate(timeStart);
+        String receivedInetAndTerm = dataProcessing.checkHeartBeatsandElections(timeStart, term);
         String[] parts = receivedInetAndTerm.split("@");
 
         msgReceived = parts[0];
         String stringInet = parts[1];
-        int receivedTerm = Integer.valueOf(parts[2]);
+        int receivedTerm = Integer.valueOf(parts[2].trim());
         System.out.println("FOLLOWER: message received: " + msgReceived + "; INET:" + stringInet + ";TERM:" + receivedTerm);
         
-       
+        InetAddress inet;
+        
         switch(msgReceived){
+            
             case "HEARTBEATS":
                 System.out.println("FOLLOWER: RECEBI UM HeartBeat");
-                term = receivedTerm;
                 break;
                 
             case "REQUESTVOTE":
-                InetAddress inet = InetAddress.getByName(stringInet); //given the host name 
-                //System.out.println(inet.getHostName()); 
+                inet = InetAddress.getByName(stringInet); //given the host name 
                 String answer = vote(term, receivedTerm); 
                 switch (answer) {
+                    
                     case "REJECTED":
+                        
                         msgToSend = "FOLLOWER@" + Integer.toString(term);
                         comModule.sendMessage(msgToSend, inet);
                         System.out.println("FOLLOWER: RECEBI UM RequestVote - Rejeitei");
@@ -65,6 +67,12 @@ public class Follower extends Thread {
                 break;
             case "TIMEOUT":
                 nextState = "CANDIDATE";
+                break;
+            case "ERROR":
+                inet = InetAddress.getByName(stringInet); //given the host name 
+                msgToSend="ERROR@"+Integer.toString(term);   
+                comModule.sendMessage(msgToSend, inet);
+                System.out.println("FOLLOWER: RECEBI UM TERMO MENOR QUE O MEU");
                 break;
         }
         

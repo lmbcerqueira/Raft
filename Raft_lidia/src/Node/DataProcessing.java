@@ -4,7 +4,6 @@ import java.net.InetAddress;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 class DataProcessing {
-    private final int numeroNos=5;
     private final long timeOut;
     private final ConcurrentLinkedQueue<Pair> queue;
 
@@ -13,11 +12,18 @@ class DataProcessing {
         this.queue = queue;
     }
     
-    private boolean contains(String message){
+    public boolean contains(String message){
         return this.queue.peek().getMessage().contains(message);
     } 
     
-    public String checkHeartBeatsandCandidate(long timeStart){ //ver questão de 1970
+    public boolean isReceivedTermUPdated(int term){
+        if(this.queue.peek().getTerm()<term)
+            return false;
+        else
+            return true;
+    }
+    
+    public String checkHeartBeatsandElections(long timeStart, int term){ //ver questão de 1970
         //A ESPERA DE HEARTBEATS: RECEBE HEART BEATS OU NAO E ELECTION
         //RECEBE HEART BEATS RESPONDE COM HEARTBEATS SENAO MANDA ELECTION
         //RECEBE ELECTION MANDA ANSWER
@@ -39,12 +45,16 @@ class DataProcessing {
                 
             else if(this.queue.peek().getTime() < timeStart)
                 this.queue.poll();
-            
+            else if(!isReceivedTermUPdated(term)){
+                inet = this.queue.peek().getInet();
+                IPsender = inet.getHostAddress();
+                return "ERROR@" + IPsender + "@" + Integer.toString(term);
+            }    
             else if(contains("HELLO")){
                 receivedTerm = this.queue.peek().getTerm();
                 inet = this.queue.peek().getInet();
                 IPsender = inet.getHostAddress();
-                //System.out.println("Data Processing - received IP - " + IPsender);
+                System.out.println("Data Processing - received IP - " + IPsender);
                 this.queue.poll();
                 return "HEARTBEATS@" + IPsender + "@" + Integer.toString(receivedTerm);
             }
@@ -66,47 +76,9 @@ class DataProcessing {
 
     }
 
-    public String resultElections(long timeStart) {
-        
-        int votes = 0;
-        
-        while(true){
-            
-            long x = System.currentTimeMillis()-timeStart;
-            float xSeconds=x/1000F; //time in seconds
-            
-            if(xSeconds > timeOut){
-                
-                return "tryAGAIN";
-            }
-            else if(this.queue.isEmpty());
-                
-            else if(this.queue.peek().getTime()<timeStart)
-                this.queue.poll();
-            
-            else if(contains("ACCEPTED")){
-                System.out.println("CANDIDATO: recebi um voto");
-                votes++;
-                this.queue.poll();
-                if(votes > (this.numeroNos/2)) 
-                    return "ACCEPTED";
-            }
-            
-            else if(contains("REJECTED")){
-                this.queue.poll();
-                return "REJECTED";
-            }
-            else if(!(contains("ACCEPTED")||contains("REJECTED"))){
-                this.queue.poll();
-            }  
-            
-            
-        }
-        
 
-    }
     
-    public void checkIncomingLeaderMsg(int term){
+    public int checkIncomingLeaderMsg(int term){
         
         int receivedTerm;
         String pair;
@@ -122,7 +94,7 @@ class DataProcessing {
                     break;   
             }  
         }
-        
+        return receivedTerm;
     }
     
 }

@@ -7,7 +7,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class States {
     
-    private int term = 1;
+    private int term = 0;
+    private int nNodes = 5;
     
     public void States() throws IOException{
    
@@ -15,10 +16,9 @@ public class States {
        
        //Processamento do FIFO
        ConcurrentLinkedQueue<Pair> queue = new ConcurrentLinkedQueue<>();
-       //DataProcessing dataProcessing = new DataProcessing(follower.getTimeout(),candidate.getTimeout(),queue);
        
        Follower follower = new Follower(queue);
-       Candidate candidate = new Candidate(queue);
+       Candidate candidate = new Candidate(queue, this.nNodes);
        Leader leader = new Leader(queue);
        
        //Parametros da comunicaçao UDP
@@ -46,17 +46,19 @@ public class States {
         
         switch (state){
             case 1: //FOLLOWER
+                
                 info = follower.cycle(timeStart,this.term);
+                
                 String[] parts = info.split("@");
-                nextState=parts[0];
-                this.term=Integer.parseInt(parts[1]);//termo recebido
-                System.out.println("STATES: TERMO="+this.term);
+                nextState = parts[0];
+                this.term = Integer.parseInt(parts[1]); //atualizar termo
+                
                 switch (nextState){
                     case "FOLLOWER":
                         flowSM.setFollower();
                     break;
                     case "CANDIDATE":
-                        flowSM.setCandidate(); //ONDE AUMENTAMOS O TERM???
+                        flowSM.setCandidate(); 
                     break; 
                     case "newLeaderAccepted":
                         flowSM.setFollower();
@@ -84,11 +86,13 @@ public class States {
                 break;
                 
             case 3: //LEADER    
-                leader.cycle(this.term); // só retorna de cycle quando tiver de mudar para follower
+                
+                this.term=leader.cycle(this.term); // só retorna de cycle quando tiver de mudar para follower
                 flowSM.setFollower();
                 break;
               
             default: 
+                
                 System.out.println("UNKNOWN STATE");
                 break;        
          }
