@@ -17,7 +17,7 @@ public class Candidate {
         this.comModule = new ComunicationUDP();
         this.timeout = this.getTimeout();
         this.queue = queue;
-        this.dataProcessing = new DataProcessing(this.timeout, this.queue);
+        this.dataProcessing = new DataProcessing(this.queue);
         this.nNodes = nNodes;
     }
     
@@ -26,7 +26,7 @@ public class Candidate {
         int min_value = 2000; //?????????
         int max_value = 2100; //????????????
         
-        return min_value + (int)(Math.random() * ((max_value - min_value) + 1));
+        return (min_value + (int)(Math.random() * ((max_value - min_value) + 1)))/100;
     }
       
     public void startElection(int term) throws IOException{
@@ -67,8 +67,7 @@ public class Candidate {
         
         int votes = 0;
         InetAddress inet;
-        String IPsender;
-        
+        String IPsender;        
         
         while(true){
             
@@ -83,6 +82,13 @@ public class Candidate {
             else if(this.queue.peek().getTime()<timeStart)
                 this.queue.poll();
             
+            else if(this.dataProcessing.contains("ERROR")){
+                System.out.println("CANDIDATO: recebi error - nao estou updated");
+                //atualizar term
+                //this.term =       BUG HERE          
+                this.queue.poll();
+                return "REJECTED";
+            }
             else if(this.dataProcessing.contains("ACCEPTED")){
                 System.out.println("CANDIDATO: recebi um voto");
                 votes++;

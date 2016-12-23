@@ -11,30 +11,30 @@ public class States {
     private int nNodes = 5;
     
     public void States() throws IOException{
-   
-       FlowStateMachine flowSM = new FlowStateMachine();
        
-       //Processamento do FIFO
-       ConcurrentLinkedQueue<Pair> queue = new ConcurrentLinkedQueue<>();
+       //FIFO
+       ConcurrentLinkedQueue<Pair> queue = new ConcurrentLinkedQueue<>();   
+       
+       //STATE MACHINE
+       FlowStateMachine flowSM = new FlowStateMachine();
+       flowSM.setFollower();
        
        Follower follower = new Follower(queue);
        Candidate candidate = new Candidate(queue, this.nNodes);
        Leader leader = new Leader(queue);
        
-       //Parametros da comunicaçao UDP
+       int state;
+       String nextState,info;       
+            
+       //COMM UDP
        int port = follower.comModule.port;
        InetAddress groupIP = InetAddress.getByName(follower.comModule.group);
        
-       //Iniciar thread receive
+       //Thread receive
        ThreadReceive receiverThread = new ThreadReceive(port, groupIP, queue);
        Thread receiver = new Thread(receiverThread);
        receiver.start();
-       
-       //INICIO DA STATE MACHINE
-       flowSM.setFollower();
-       
-       int state;
-       String nextState,info;
+
        
        while(true){
            
@@ -69,7 +69,7 @@ public class States {
 
             case 2: //CANDIDATE
                 
-                nextState = candidate.cycle(timeStart, ++this.term);
+                nextState = candidate.cycle(timeStart, ++this.term); //sempre que alguem se torna candidato, aumentar termo
                 
                 switch(nextState){
                     case "FOLLOWER":

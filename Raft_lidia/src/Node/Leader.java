@@ -18,7 +18,7 @@ public class Leader {
         this.comModule = new ComunicationUDP();
         this.timeout = this.getHeartBeat();
         this.queue = queue;
-        this.dataProcessing = new DataProcessing(this.timeout, this.queue);
+        this.dataProcessing = new DataProcessing(this.queue);
         
     }
     
@@ -27,29 +27,41 @@ public class Leader {
         int min_value = 1000;
         int max_value = 1100;
         
-        return min_value + (int)(Math.random() * ((max_value - min_value) + 1));
+        return (min_value + (int)(Math.random() * ((max_value - min_value) + 1)))/100;
     }
     
-    public void sendHeartBeat(int term) throws IOException{
-        
-        String heartBeatString;
-        heartBeatString = "HELLO@"+Integer.toString(term);
-        
-        this.comModule.sendMessageBroadcast(heartBeatString); //com que frequência?????
-    }
-
     public int cycle(int term) {
         
         // creating timer task and schedule
         Timer timer = new Timer();
         timer.schedule(new sendHeartBeatTimer(term),100, 10000);  //heartbeatfreq >>>>>>> timeoutsfollowers
        
-        int newTerm=this.dataProcessing.checkIncomingLeaderMsg(term); //retorna qd tiver de mudar para FOLLOWER
+        int newTerm = checkIncomingLeaderMsg(term); //retorna qd tiver de mudar para FOLLOWER
         
         System.out.println("LEADER : Vou sair do Leadercycle");
         timer.cancel();
         return newTerm;
     }
+    
+    
+    public int checkIncomingLeaderMsg(int term){
+        
+        int receivedTerm;
+        String pair;
+        
+        while(true){
+            if (this.queue.isEmpty())
+                continue;
+            else{
+                receivedTerm = this.queue.poll().getTerm();
+                System.out.println("DEBUG LEADER: " + receivedTerm);
+                
+                if(receivedTerm > term)
+                    break;   
+            }  
+        }
+        return receivedTerm;
+    }   
     
     //TIMER
     class sendHeartBeatTimer extends TimerTask  {

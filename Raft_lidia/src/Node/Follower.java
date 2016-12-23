@@ -18,8 +18,18 @@ public class Follower extends Thread {
         this.comModule = new ComunicationUDP();
         this.timeout = this.getTimeout();
         this.queue = queue;
-        this.dataProcessing = new DataProcessing(this.timeout, this.queue);
+        this.dataProcessing = new DataProcessing(this.queue);
     }
+    
+    public long getTimeout(){
+                 
+        int min_value = 3000;
+        int max_value = 4000;
+        
+        return (min_value + (int)(Math.random() * ((max_value - min_value) + 1)))/100;   
+    }
+    
+
     
     public String cycle(long timeStart, int term) throws UnknownHostException, IOException{
         
@@ -27,7 +37,7 @@ public class Follower extends Thread {
         String msgToSend;
         String nextState = "FOLLOWER";
         
-        String receivedInetAndTerm = dataProcessing.checkHeartBeatsandElections(timeStart, term);
+        String receivedInetAndTerm = checkHeartBeatsandElections(timeStart, term);
         String[] parts = receivedInetAndTerm.split("@");
 
         msgReceived = parts[0];
@@ -41,15 +51,14 @@ public class Follower extends Thread {
             
             case "HEARTBEATS":
                 System.out.println("FOLLOWER: RECEBI UM HeartBeat");
+                term = receivedTerm;
                 break;
                 
             case "REQUESTVOTE":
-                inet = InetAddress.getByName(stringInet); //given the host name 
+                inet = InetAddress.getByName(stringInet); 
                 String answer = vote(term, receivedTerm); 
                 switch (answer) {
-                    
                     case "REJECTED":
-                        
                         msgToSend = "FOLLOWER@" + Integer.toString(term);
                         comModule.sendMessage(msgToSend, inet);
                         System.out.println("FOLLOWER: RECEBI UM RequestVote - Rejeitei");
@@ -65,12 +74,14 @@ public class Follower extends Thread {
                         break;
                 }
                 break;
+                
             case "TIMEOUT":
                 nextState = "CANDIDATE";
                 break;
-            case "ERROR":
-                inet = InetAddress.getByName(stringInet); //given the host name 
-                msgToSend="ERROR@"+Integer.toString(term);   
+                
+            case "ERROR": //Term received not updated
+                inet = InetAddress.getByName(stringInet); 
+                msgToSend = "ERROR@" + Integer.toString(term);   
                 comModule.sendMessage(msgToSend, inet);
                 System.out.println("FOLLOWER: RECEBI UM TERMO MENOR QUE O MEU");
                 break;
@@ -79,13 +90,60 @@ public class Follower extends Thread {
         return nextState + "@" + Integer.toString(term);
     }
     
-    public long getTimeout(){
-                 
-        int min_value = 3000;
-        int max_value = 4000;
+    public String checkHeartBeatsandElections(long timeStart, int term){ //ver questão de 1970
+        //A ESPERA DE HEARTBEATS: RECEBE HEART BEATS OU NAO E ELECTION
+        //RECEBE HEART BEATS RESPONDE COM HEARTBEATS SENAO MANDA ELECTION
+        //RECEBE ELECTION MANDA ANSWER
         
-        return min_value + (int)(Math.random() * ((max_value - min_value) + 1));
-       
+        InetAddress inet;
+        int receivedTerm;
+        String IPsender;
+        
+        while(true){
+            
+            long x = System.currentTimeMillis() - timeStart;
+            float xSeconds=x/1000F; //time in seconds
+            
+            //System.out.println("TIMEOUT: " + this.timeout + "; Ja passaram: " + xSeconds);
+            
+            if(xSeconds > this.timeout)
+                return "TIMEOUT@" + "TIMEOUT" + "@1"; // dois ultimos elementos don't care
+             
+            else if(this.queue.isEmpty());
+                
+            else if(this.queue.peek().getTime() < timeStart)
+                this.queue.poll();
+            
+            else if(!dataProcessing.isReceivedTermUPdated(term)){
+                inet = this.queue.peek().getInet();
+                IPsender = inet.getHostAddress();
+                return "ERROR@" + IPsender + "@" + Integer.toString(term);
+            }    
+            
+            else if(dataProcessing.contains("HELLO")){
+                receivedTerm = this.queue.peek().getTerm();
+                inet = this.queue.peek().getInet();
+                IPsender = inet.getHostAddress();
+                System.out.println("Data Processing - received IP - " + IPsender);
+                this.queue.poll();
+                return "HEARTBEATS@" + IPsender + "@" + Integer.toString(receivedTerm);
+            }
+            
+            else if(dataProcessing.contains("ELECTION")){
+                receivedTerm = this.queue.peek().getTerm();
+                inet = this.queue.peek().getInet();
+                IPsender = inet.getHostAddress();
+                System.out.println("Data Processing - received IP - " + IPsender);
+                this.queue.poll();
+                return "REQUESTVOTE@" + IPsender + "@" + Integer.toString(receivedTerm);
+            }
+            
+            else if(!(dataProcessing.contains("HELLO") || dataProcessing.contains("ELECTION"))){
+                this.queue.poll();
+            }     
+            
+        }
+
     }
     
     public String vote(int term, int receivedTerm ){
@@ -99,5 +157,7 @@ public class Follower extends Thread {
             answer = "REJECTED"; 
         return answer;
     }
+    
+
    
 }
