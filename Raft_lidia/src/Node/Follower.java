@@ -23,8 +23,8 @@ public class Follower extends Thread {
     
     public long getTimeout(){
                  
-        int min_value = 3000;
-        int max_value = 4000;
+        int min_value = 2000;//3
+        int max_value = 3000;//4
         
         return (min_value + (int)(Math.random() * ((max_value - min_value) + 1)))/100;   
     }
@@ -68,7 +68,6 @@ public class Follower extends Thread {
                         term = receivedTerm;
                         System.out.println("FOLLOWER: Update term: "+ term);
                         msgToSend = "ACCEPTED@" + Integer.toString(term);
-                        System.out.println("DEBUG FOLLOWER: msgToSend " + msgToSend);
                         comModule.sendMessage(msgToSend, inet);
                         System.out.println("FOLLOWER: RECEBI UM RequestVote - ACEITEI");
                         break;
@@ -114,6 +113,7 @@ public class Follower extends Thread {
             else if(this.queue.peek().getTime() < timeStart)
                 this.queue.poll();
             
+            // A primeira coisa a verificar é se a msg que recebemos tem um termo < que o nosso; responder c/ Erro se sim
             else if(!dataProcessing.isReceivedTermUPdated(term)){
                 inet = this.queue.peek().getInet();
                 IPsender = inet.getHostAddress();
@@ -147,17 +147,12 @@ public class Follower extends Thread {
     }
     
     public String vote(int term, int receivedTerm ){
-        
-        String answer = null;
-        
+               
         if (receivedTerm > term)
-            answer = "ACCEPTED";
-            
+            return "ACCEPTED";   
         else
-            answer = "REJECTED"; 
-        return answer;
-    }
-    
+            return "REJECTED"; 
 
+    }
    
 }

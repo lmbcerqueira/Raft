@@ -47,7 +47,6 @@ class ComunicationUDP  {
         String destinationIP = parts[1]; 
                 
         message = destinationIP +  "@" + message;
-        System.out.println("DEBUG SEND " + message);
         byte[] sendData = new byte[message.length()*8];
         sendData = message.getBytes();
         

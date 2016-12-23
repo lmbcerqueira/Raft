@@ -81,7 +81,6 @@ public class ThreadReceive extends Thread {
                     String message = parts[1];
                     term = Integer.parseInt(parts[2].trim());
                     time = System.currentTimeMillis();
-                    System.out.println("term="+term+" ; message="+message);
                     Pair pair = new Pair(time, message, inet, term);
                     queue.add(pair);
                 }

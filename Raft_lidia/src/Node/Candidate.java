@@ -36,15 +36,19 @@ public class Candidate {
         this.comModule.sendMessageBroadcast(electionString); 
     }
     
-    public String cycle(long timeStart, int term) throws IOException{
+    public String[] cycle(long timeStart, int term) throws IOException{
         
-        String received;
+        String[] ret = new String[2];
+        
+        String[] received = new String[2];
         String nextState = "CANDIDATE";
         startElection(term);
 
         received = resultElections(timeStart, term);
+        
+        String result = received[1];
 
-        switch(received){
+        switch(result){
             case "tryAGAIN":
                 nextState = "CANDIDATE";
                 System.out.println("candidato: tenta de novo, TIMEOUT ");
@@ -59,23 +63,29 @@ public class Candidate {
                 break;
         }
         
-        return nextState;
+        ret[0] = received[0]; //term updated
+        ret[1] = nextState;
+        return ret;
         
     }
 
-    public String resultElections(long timeStart, int term) throws IOException {
+    public String[] resultElections(long timeStart, int term) throws IOException {
         
         int votes = 0;
         InetAddress inet;
-        String IPsender;        
+        String IPsender;   
+        String[] ret = new String[2];
+        ret[0] = Integer.toString(term);
         
         while(true){
             
             long x = System.currentTimeMillis()-timeStart;
             float xSeconds=x/1000F; //time in seconds
             
-            if(xSeconds > this.timeout)
-                return "tryAGAIN";
+            if(xSeconds > this.timeout){
+                ret[1] = "tryAGAIN";
+                return ret;
+            }
             
             else if(this.queue.isEmpty());
                 
@@ -85,21 +95,25 @@ public class Candidate {
             else if(this.dataProcessing.contains("ERROR")){
                 System.out.println("CANDIDATO: recebi error - nao estou updated");
                 //atualizar term
-                //this.term =       BUG HERE          
+                ret[0] = Integer.toString(this.queue.peek().getTerm());   
+                ret[1] = "REJECTED";
                 this.queue.poll();
-                return "REJECTED";
+                return ret;
             }
             else if(this.dataProcessing.contains("ACCEPTED")){
                 System.out.println("CANDIDATO: recebi um voto");
                 votes++;
                 this.queue.poll();
-                if(votes > (this.nNodes/2)) 
-                    return "ACCEPTED";
+                if(votes > (this.nNodes/2)){
+                    ret[1] = "ACCEPTED";
+                    return ret; 
+                }
             }
             
             else if(this.dataProcessing.contains("REJECTED")){
                 this.queue.poll();
-                return "REJECTED";
+                ret[1] = "REJECTED";
+                return ret;
             }
             
             else if(this.dataProcessing.contains("HELLO")){
@@ -115,7 +129,8 @@ public class Candidate {
                 // se houver um lider com um termo maior passa a follower
                 else{
                     this.queue.poll();  
-                    return "REJECTED";
+                    ret[1] = "REJECTED";
+                    return ret;
                 }     
             }
             

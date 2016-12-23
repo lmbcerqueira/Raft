@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class States {
     
-    private int term = 0;
+    public int term = 0;
     private int nNodes = 5;
     
     public void States() throws IOException{
@@ -24,7 +24,7 @@ public class States {
        Leader leader = new Leader(queue);
        
        int state;
-       String nextState,info;       
+       String nextState;       
             
        //COMM UDP
        int port = follower.comModule.port;
@@ -47,7 +47,7 @@ public class States {
         switch (state){
             case 1: //FOLLOWER
                 
-                info = follower.cycle(timeStart,this.term);
+                String info = follower.cycle(timeStart,this.term);
                 
                 String[] parts = info.split("@");
                 nextState = parts[0];
@@ -69,7 +69,12 @@ public class States {
 
             case 2: //CANDIDATE
                 
-                nextState = candidate.cycle(timeStart, ++this.term); //sempre que alguem se torna candidato, aumentar termo
+                String[] updates = new String[2];
+                
+                updates = candidate.cycle(timeStart, ++this.term); //sempre que alguem se torna candidato, aumentar termo
+                
+                this.term = Integer.parseInt(updates[0]);
+                nextState = updates[1];                
                 
                 switch(nextState){
                     case "FOLLOWER":

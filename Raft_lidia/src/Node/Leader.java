@@ -54,7 +54,6 @@ public class Leader {
                 continue;
             else{
                 receivedTerm = this.queue.poll().getTerm();
-                System.out.println("DEBUG LEADER: " + receivedTerm);
                 
                 if(receivedTerm > term)
                     break;   
