@@ -48,15 +48,24 @@ public class Leader {
         
         int receivedTerm;
         String pair;
+        String message;
         
         while(true){
             if (this.queue.isEmpty())
                 continue;
             else{
-                receivedTerm = this.queue.poll().getTerm();
+                receivedTerm = this.queue.peek().getTerm();
                 
                 if(receivedTerm > term)
                     break;   
+                
+                message = this.queue.poll().getMessage();
+                
+                if (message.contains("COMMAND")){
+                    String new_parts[] = message.split(":");
+                    String command = new_parts[1];
+                    System.out.println("[LEADER] : Received command: " + command);
+                }                 
             }  
         }
         return receivedTerm;

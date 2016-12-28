@@ -20,7 +20,7 @@ class ComunicationUDP  {
     }
         
     public void ComunicationUDP() throws  IOException {
-        s.joinGroup(serverIPAddress); 
+        this.s.joinGroup(serverIPAddress); 
         
     }
     
@@ -35,7 +35,7 @@ class ComunicationUDP  {
               
         DatagramPacket pack = new DatagramPacket(sendData, sendData.length, serverIPAddress, this.port);
         
-        s.send(pack);
+        this.s.send(pack);
         //System.out.println("COMM send: BROADCAST  -> " + message); 
             
     }
@@ -51,15 +51,15 @@ class ComunicationUDP  {
         sendData = message.getBytes();
         
         DatagramPacket pack = new DatagramPacket(sendData, sendData.length, serverIPAddress, this.port);
-        s.send(pack);
+        this.s.send(pack);
 
         System.out.println("COM send uni" + message);
         
     }
 
     public void leaveGroup() throws IOException{
-        s.leaveGroup(serverIPAddress);
-        s.close();
+        this.s.leaveGroup(serverIPAddress);
+        this.s.close();
      }
 
 }
