@@ -71,7 +71,7 @@ public class Candidate {
 
     public String[] resultElections(long timeStart, int term) throws IOException {
         
-        int votes = 0;
+        int votes = 1; //ja votou em si
         InetAddress inet;
         String IPsender;   
         String[] ret = new String[2];

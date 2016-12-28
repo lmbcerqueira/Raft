@@ -10,9 +10,15 @@ public class States {
     public int term = 0;
     private int nNodes = 5;
     
-    public void States() throws IOException{
-       
-       //FIFO
+    public void mainCycle(String id) throws IOException{
+           
+       // log
+       String filename = "log_" + id + ".txt";
+       Log log = new Log(filename);
+       //ATUALIZA TERMO SE NECESSARIO
+       this.term=log.getTermfromLOG();
+       System.out.println("TERMO DO LOG:"+this.term);
+        //FIFO
        ConcurrentLinkedQueue<Pair> queue = new ConcurrentLinkedQueue<>();   
        
        //STATE MACHINE
@@ -21,7 +27,7 @@ public class States {
        
        Follower follower = new Follower(queue);
        Candidate candidate = new Candidate(queue, this.nNodes);
-       Leader leader = new Leader(queue);
+       Leader leader = new Leader(queue,log);
        
        int state;
        String nextState;       
@@ -34,7 +40,6 @@ public class States {
        ThreadReceive receiverThread = new ThreadReceive(port, groupIP, queue);
        Thread receiver = new Thread(receiverThread);
        receiver.start();
-
        
        while(true){
            

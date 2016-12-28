@@ -13,13 +13,14 @@ public class Leader {
     private final long timeout;
     private final DataProcessing dataProcessing;
     private final ConcurrentLinkedQueue<Pair> queue;
+    private final Log log;
     
-    public Leader(ConcurrentLinkedQueue<Pair> queue) throws IOException {
+    public Leader(ConcurrentLinkedQueue<Pair> queue, Log log) throws IOException {
         this.comModule = new ComunicationUDP();
         this.timeout = this.getHeartBeat();
         this.queue = queue;
         this.dataProcessing = new DataProcessing(this.queue);
-        
+        this.log = log;
     }
     
     private final int getHeartBeat(){
@@ -30,7 +31,7 @@ public class Leader {
         return (min_value + (int)(Math.random() * ((max_value - min_value) + 1)))/100;
     }
     
-    public int cycle(int term) {
+    public int cycle(int term) throws IOException {
         
         // creating timer task and schedule
         Timer timer = new Timer();
@@ -44,7 +45,7 @@ public class Leader {
     }
     
     
-    public int checkIncomingLeaderMsg(int term){
+    public int checkIncomingLeaderMsg(int term) throws IOException{
         
         int receivedTerm;
         String pair;
@@ -65,6 +66,7 @@ public class Leader {
                     String new_parts[] = message.split(":");
                     String command = new_parts[1];
                     System.out.println("[LEADER] : Received command: " + command);
+                    this.log.writeLog(term, command);
                 }                 
             }  
         }
