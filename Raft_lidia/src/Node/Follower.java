@@ -13,12 +13,16 @@ public class Follower extends Thread {
     private final long timeout;
     private final DataProcessing dataProcessing;
     private final ConcurrentLinkedQueue<Pair> queue;
+    private final Log log;
+   
 
-    public Follower(ConcurrentLinkedQueue<Pair> queue) throws IOException {
+    public Follower(ConcurrentLinkedQueue<Pair> queue, Log log) throws IOException {
         this.comModule = new ComunicationUDP();
         this.timeout = this.getTimeout();
         this.queue = queue;
         this.dataProcessing = new DataProcessing(this.queue);
+        this.log = log;
+  
     }
     
     public long getTimeout(){
@@ -32,7 +36,7 @@ public class Follower extends Thread {
 
     
     public String cycle(long timeStart, int term) throws UnknownHostException, IOException{
-        
+
         String msgReceived;
         String msgToSend;
         String nextState = "FOLLOWER";
@@ -80,7 +84,7 @@ public class Follower extends Thread {
                 
             case "ERROR": //Term received not updated
                 inet = InetAddress.getByName(stringInet); 
-                msgToSend = "ERROR@" + Integer.toString(term);   
+                msgToSend = "CANDNOTUPD@" + Integer.toString(term);   
                 comModule.sendMessage(msgToSend, inet);
                 System.out.println("FOLLOWER: RECEBI UM TERMO MENOR QUE O MEU");
                 break;
@@ -89,7 +93,7 @@ public class Follower extends Thread {
         return nextState + "@" + Integer.toString(term);
     }
     
-    public String checkHeartBeatsandElections(long timeStart, int term){ //ver questão de 1970
+    public String checkHeartBeatsandElections(long timeStart, int term) throws IOException{ //ver questão de 1970
         //A ESPERA DE HEARTBEATS: RECEBE HEART BEATS OU NAO E ELECTION
         //RECEBE HEART BEATS RESPONDE COM HEARTBEATS SENAO MANDA ELECTION
         //RECEBE ELECTION MANDA ANSWER
@@ -102,8 +106,6 @@ public class Follower extends Thread {
             
             long x = System.currentTimeMillis() - timeStart;
             float xSeconds=x/1000F; //time in seconds
-            
-            //System.out.println("TIMEOUT: " + this.timeout + "; Ja passaram: " + xSeconds);
             
             if(xSeconds > this.timeout)
                 return "TIMEOUT@" + "TIMEOUT" + "@1"; // dois ultimos elementos don't care
@@ -141,7 +143,7 @@ public class Follower extends Thread {
                 this.queue.poll();
                 return "REQUESTVOTE@" + IPsender + "@" + Integer.toString(receivedTerm);
             }
-            
+                        
             else if(!(dataProcessing.contains("HELLO") || dataProcessing.contains("ELECTION"))){
                 this.queue.poll();
             }     
@@ -158,5 +160,5 @@ public class Follower extends Thread {
             return "REJECTED"; 
 
     }
-   
+      
 }

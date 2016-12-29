@@ -15,18 +15,24 @@ public class States {
        // log
        String filename = "log_" + id + ".txt";
        Log log = new Log(filename);
+       
        //ATUALIZA TERMO SE NECESSARIO
-       this.term=log.getTermfromLOG();
+       int[] logInfo = new int[2];
+       logInfo = log.getInfoLastEntry();
+       this.term = logInfo[1];
        System.out.println("TERMO DO LOG:"+this.term);
-        //FIFO
-       ConcurrentLinkedQueue<Pair> queue = new ConcurrentLinkedQueue<>();   
+        
+       //FIFO
+       ConcurrentLinkedQueue<Pair> queue = new ConcurrentLinkedQueue<>();
+       ConcurrentLinkedQueue<Pair> queueLOG = new ConcurrentLinkedQueue<>();
+       
        
        //STATE MACHINE
        FlowStateMachine flowSM = new FlowStateMachine();
        flowSM.setFollower();
        
-       Follower follower = new Follower(queue);
-       Candidate candidate = new Candidate(queue, this.nNodes);
+       Follower follower = new Follower(queue, log);
+       Candidate candidate = new Candidate(queue, this.nNodes, log);
        Leader leader = new Leader(queue,log);
        
        int state;
@@ -37,9 +43,14 @@ public class States {
        InetAddress groupIP = InetAddress.getByName(follower.comModule.group);
        
        //Thread receive
-       ThreadReceive receiverThread = new ThreadReceive(port, groupIP, queue);
+       ThreadReceive receiverThread = new ThreadReceive(port, groupIP, queue, queueLOG);
        Thread receiver = new Thread(receiverThread);
        receiver.start();
+       
+       //Thread log
+       ThreadLog logThread = new ThreadLog(queueLOG, log);
+       Thread logWriter = new Thread(logThread);
+       logWriter.start();       
        
        while(true){
            

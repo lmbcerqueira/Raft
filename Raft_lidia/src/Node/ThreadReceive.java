@@ -16,11 +16,13 @@ public class ThreadReceive extends Thread {
     private final int port;
     private final InetAddress groupIP;
     private final ConcurrentLinkedQueue<Pair> queue;
+    private final ConcurrentLinkedQueue<Pair> queueLOG;
     
-    ThreadReceive(int port, InetAddress groupIP, ConcurrentLinkedQueue<Pair> queue){
+    ThreadReceive(int port, InetAddress groupIP, ConcurrentLinkedQueue<Pair> queue, ConcurrentLinkedQueue<Pair> queueLOG){
         this.port = port;
         this.groupIP = groupIP;
         this.queue = queue;
+        this.queueLOG = queueLOG;
     }
        
     public void run() {
@@ -28,7 +30,8 @@ public class ThreadReceive extends Thread {
         long time;
         MulticastSocket socket;
         InetAddress inet = null;
-        int term;
+        //int term,prevLogTerm,prevLogIndex;
+        
         
         String myIP = null;
         
@@ -60,7 +63,7 @@ public class ThreadReceive extends Thread {
             socket.joinGroup(groupIP);
             
             while(true){
-                
+                time=System.currentTimeMillis();
                 byte[] buf = new byte[1024];
                 
                 DatagramPacket pack = new DatagramPacket(buf, buf.length);
@@ -71,18 +74,44 @@ public class ThreadReceive extends Thread {
                 String[] parts = inetStr.split("/");
                 String senderIP = parts[1];
                 
-                
                 byte[] bytes = pack.getData();
-                String messageAndTerm = new String(bytes); 
-                parts = messageAndTerm.split("@");
+                String receivedPacket = new String(bytes); 
+                parts = receivedPacket.split("@");
                 String to = parts[0];
-                if ( to.compareTo("BROADCAST")==0 || to.compareTo(myIP)==0){
+                String message = parts[1];
+                int term = Integer.parseInt(parts[2].trim());
+                
+                //Logs
+                if ( to.compareTo("BROADCAST")==0 && message.contains("AppendEntry")){ 
+                    //Se for lider NAO ADICIONAR na queue
+                    if(senderIP.compareTo(myIP)!=0){
+                        int prevTerm=Integer.parseInt(parts[3].trim());
+                        int prevIndex=Integer.parseInt(parts[4].trim());
+                        Pair pair = new Pair(time, message, inet, term, prevIndex,prevTerm);
+                        queueLOG.add(pair);
+                    }
+                     
+                }
                     
-                    String message = parts[1];
+                //mensagens normais    
+                else if ( to.compareTo("BROADCAST")==0 || to.compareTo(myIP)==0){
+                                        
                     term = Integer.parseInt(parts[2].trim());
-                    time = System.currentTimeMillis();
-                    Pair pair = new Pair(time, message, inet, term);
-                    queue.add(pair);
+                    if(message.contains("ELECTION")||message.contains("HELLO")){
+                        int prevTerm=Integer.parseInt(parts[3].trim());
+                        int prevIndex=Integer.parseInt(parts[4].trim());
+                        Pair pair = new Pair(time, message, inet, term, prevIndex,prevTerm);
+                        queue.add(pair);
+                    
+                    }
+                    else{
+                        
+                        
+                        Pair pair = new Pair(time, message, inet, term, -1,-1);
+                        queue.add(pair);
+                    }    
+                   
+                    
                 }
             }
    

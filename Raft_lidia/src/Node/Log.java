@@ -56,24 +56,27 @@ public class Log {
         this.logIndex ++;
     }
     
-    public int getTermfromLOG() throws IOException{
+    public int[] getInfoLastEntry() throws IOException{
         
         FileReader reader = new FileReader(this.file);
         BufferedReader input = new BufferedReader(reader);
         
         String last = null, line;
-        
-        int term = 1;
+              
+        int[] info = new int[2];
+        info[0]=1;
+        info[1]=1;
         
         while ((line = input.readLine()) != null) 
             last = line;
 
         if(last!=null){
             String parts[] = last.split("@");
-            term= Integer.parseInt(parts[1]); 
+            info[1]= Integer.parseInt(parts[1]); 
+            info[0]= Integer.parseInt(parts[0]);
         }
 
-        return term;      
+        return info;      
     }      
 }
     

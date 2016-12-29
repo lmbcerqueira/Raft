@@ -4,6 +4,8 @@ package Node;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Candidate {
     
@@ -12,13 +14,15 @@ public class Candidate {
     private final ConcurrentLinkedQueue<Pair> queue;
     private final DataProcessing dataProcessing;
     private final int nNodes;
+    private final Log log;
      
-    public Candidate(ConcurrentLinkedQueue<Pair> queue, int nNodes) throws IOException {
+    public Candidate(ConcurrentLinkedQueue<Pair> queue, int nNodes, Log log) throws IOException {
         this.comModule = new ComunicationUDP();
         this.timeout = this.getTimeout();
         this.queue = queue;
         this.dataProcessing = new DataProcessing(this.queue);
         this.nNodes = nNodes;
+        this.log = log;
     }
     
     public long getTimeout(){
@@ -31,8 +35,16 @@ public class Candidate {
       
     public void startElection(int term) throws IOException{
         
-        String electionString= "ELECTION@"+Integer.toString(term);
+        int[] info = new int[2];
+        info = this.log.getInfoLastEntry();
+        
+        int prevLogIndex = info[0];
+        int prevLogTerm = info[1];
+        
+        String electionString= "ELECTION@" + Integer.toString(term) + "@" + Integer.toString(prevLogTerm) + "@" + Integer.toString(prevLogIndex);
+        
         System.out.println("candidato: START ELECTION");
+        
         this.comModule.sendMessageBroadcast(electionString); 
     }
     
@@ -96,7 +108,7 @@ public class Candidate {
             else if(this.queue.peek().getTerm() < 0)
                 this.queue.poll();           
             
-            else if(this.dataProcessing.contains("ERROR")){
+            else if(this.dataProcessing.contains("CANDNOTUPD")){
                 System.out.println("CANDIDATO: recebi error - nao estou updated");
                 //atualizar term
                 ret[0] = Integer.toString(this.queue.peek().getTerm());   
@@ -125,9 +137,8 @@ public class Candidate {
                 // se houver um líder com termo inferior enviar erro
                 if(!this.dataProcessing.isReceivedTermUPdated(term)){
                     inet = this.queue.peek().getInet();
-                    IPsender = inet.getHostAddress();
                     this.queue.poll();  
-                    String msgToSend = "ERROR@" + IPsender + "@" + Integer.toString(term);
+                    String msgToSend = "LEDNOTUPD@" + Integer.toString(term);
                     this.comModule.sendMessage(msgToSend, inet);
                 }
                 // se houver um lider com um termo maior passa a follower

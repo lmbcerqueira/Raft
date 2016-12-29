@@ -32,12 +32,15 @@ public class Leader {
     }
     
     public int cycle(int term) throws IOException {
-        
+        int[] info = new int[2];
+        info = this.log.getInfoLastEntry();
+        int prevLogIndex = info[0];
+        int prevLogTerm = info[1];
         // creating timer task and schedule
         Timer timer = new Timer();
-        timer.schedule(new sendHeartBeatTimer(term),100, 10000);  //heartbeatfreq >>>>>>> timeoutsfollowers
+        timer.schedule(new sendHeartBeatTimer(term, this.log,prevLogIndex,prevLogTerm),100, 10000);  //heartbeatfreq >>>>>>> timeoutsfollowers
        
-        int newTerm = checkIncomingLeaderMsg(term); //retorna qd tiver de mudar para FOLLOWER
+        int newTerm = checkIncomingLeaderMsg(term, prevLogIndex,prevLogTerm); //retorna qd tiver de mudar para FOLLOWER
         
         System.out.println("LEADER : Vou sair do Leadercycle");
         timer.cancel();
@@ -45,7 +48,7 @@ public class Leader {
     }
     
     
-    public int checkIncomingLeaderMsg(int term) throws IOException{
+    public int checkIncomingLeaderMsg(int term, int prevLogIndex, int prevLogTerm) throws IOException{
         
         int receivedTerm;
         String pair;
@@ -63,11 +66,19 @@ public class Leader {
                 message = this.queue.poll().getMessage();
                 
                 if (message.contains("COMMAND")){
+                    
                     String new_parts[] = message.split(":");
                     String command = new_parts[1];
                     System.out.println("[LEADER] : Received command: " + command);
                     this.log.writeLog(term, command);
-                }                 
+                    
+                    //send APPENDENTRYS TO ALL FOLLOWERS
+                    String entry = "AppendEntry" + ":" + command + "@" + Integer.toString(term) + "@" + Integer.toString(prevLogTerm) + "@" + Integer.toString(prevLogIndex) ;
+                    this.comModule.sendMessageBroadcast(entry);
+                }   
+                else if(message.contains("LEDNOTUPD")){
+                    break;
+                }
             }  
         }
         return receivedTerm;
@@ -77,15 +88,24 @@ public class Leader {
     class sendHeartBeatTimer extends TimerTask  {
         
         private int term;
+        private Log log;
+        private int prevLogIndex;
+        private int prevLogTerm;
         
-        sendHeartBeatTimer (int term){
+        sendHeartBeatTimer (int term, Log log,int prevLogIndex,int prevLogTerm){
             this.term = term;
+            this.log = log;
+            this.prevLogIndex=prevLogIndex;
+            this.prevLogTerm=prevLogTerm;
+            
         }
 
         @Override
         public void run() {
             
-            String heartBeatString = "HELLO" + "@" + Integer.toString(this.term);
+            
+            
+            String heartBeatString = "HELLO" + "@" + Integer.toString(this.term) + "@" + Integer.toString(this.prevLogTerm) + "@" + Integer.toString(this.prevLogIndex) ;
             System.out.println("LEADER: send" + heartBeatString);
             try {
                 Leader.this.comModule.sendMessageBroadcast(heartBeatString);
