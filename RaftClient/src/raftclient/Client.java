@@ -55,7 +55,7 @@ public class Client {
     
     public void sendCommandToLeader(char command) throws IOException{
         
-        String message = "BROADCAST@COMMAND:" + command + "@1"; // 1 (fake term)
+        String message = "BROADCAST@COMMAND:" + command + "@-1"; // 1 (fake term)
         
         //prepare buffer to send
         byte[] sendData = new byte[message.length()];
