@@ -113,6 +113,10 @@ public class Follower extends Thread {
             else if(this.queue.peek().getTime() < timeStart)
                 this.queue.poll();
             
+            // rejeitar mensagens do cliente
+            else if(this.queue.peek().getTerm() < 0)
+                this.queue.poll();
+            
             // A primeira coisa a verificar é se a msg que recebemos tem um termo < que o nosso; responder c/ Erro se sim
             else if(!dataProcessing.isReceivedTermUPdated(term)){
                 inet = this.queue.peek().getInet();

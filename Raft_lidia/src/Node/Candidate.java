@@ -92,6 +92,10 @@ public class Candidate {
             else if(this.queue.peek().getTime()<timeStart)
                 this.queue.poll();
             
+            // rejeitar mensagens do cliente
+            else if(this.queue.peek().getTerm() < 0)
+                this.queue.poll();           
+            
             else if(this.dataProcessing.contains("ERROR")){
                 System.out.println("CANDIDATO: recebi error - nao estou updated");
                 //atualizar term

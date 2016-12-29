@@ -15,13 +15,11 @@ public class Log {
     FileWriter writer;
     private int logIndex;
 
-    
-    
     public Log(String filename) throws IOException{
+        
         this.file = new File(filename);
         this.file.setReadable(true);
         this.writer = new FileWriter(this.file, true); 
-        //this.reader= new FileReader(file); 
         
         if(!this.file.exists()){
             this.file.createNewFile();
@@ -65,27 +63,18 @@ public class Log {
         
         String last = null, line;
         
-        int term;
+        int term = 1;
         
-        
-        while ((line = input.readLine()) != null) {
+        while ((line = input.readLine()) != null) 
             last = line;
-            //System.out.println("LOG:"+last);
-        }
+
         if(last!=null){
             String parts[] = last.split("@");
-            term= Integer.parseInt(parts[1]);
-            //System.out.println("HERE");
-            return term;
-            
+            term= Integer.parseInt(parts[1]); 
         }
-        else
-            return 1;      
-        
-        
-     } 
-    
-       
+
+        return term;      
+    }      
 }
     
     
