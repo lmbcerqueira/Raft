@@ -3,11 +3,13 @@ package Node;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Scanner;
 
 public class Log {
     
@@ -51,12 +53,11 @@ public class Log {
         // Writes the content to the file
         this.writer.write(entry); 
         this.writer.flush();
-        //this.writer.close();
-        
+      
         this.logIndex ++;
     }
     
-    public int[] getInfoLastEntry() throws IOException{
+    public int[] getLogLastEntry() throws IOException{
         
         FileReader reader = new FileReader(this.file);
         BufferedReader input = new BufferedReader(reader);
@@ -77,37 +78,115 @@ public class Log {
         }
 
         return info;      
-    }      
+    }  
+
+    public int lookForTerm(int index) throws IOException{
+        //retorna -1 se index não existe no log
+        //retorna term se index existe no log
+        
+        FileReader reader = new FileReader(this.file);
+        BufferedReader input = new BufferedReader(reader);        
+        
+        String last = null, line;
+        
+        while ((line = input.readLine()) != null){ 
+            last = line;
+            String parts[] = last.split("@");
+            int Logindex = Integer.parseInt(parts[0]);
+            if (Logindex == index){
+                return Integer.parseInt(parts[1]);
+            }       
+        }
+        
+        return -1;
+    }
+
+    public int checkForConflicts(int[] newEntryTerms, int  prevLogLeaderIndex) throws FileNotFoundException, IOException{
+        //retorna 0 se não houver conflito
+        // retorna o primeiro index do Log onde houve conflito
+
+        FileReader reader = new FileReader(this.file);
+        BufferedReader input = new BufferedReader(reader);        
+        
+        String line;
+        int i = -1;
+        
+        while ((line = input.readLine()) != null){ 
+            String parts[] = line.split("@");
+            int LogIndex = Integer.parseInt(parts[0]);
+            int LogTerm = Integer.parseInt(parts[1]);
+            
+            //percorrer o log até se chegar ao index = prevLogIndex do leader
+            if (LogIndex < prevLogLeaderIndex)
+                continue;
+            
+            //a partir do momento que se encontra no log o prevLogIndex do leader,
+            //comparar termLog com newEntryTerm, se forem diferentes -> conflito
+            else{
+                if(newEntryTerms[i] != LogTerm)
+                    return LogIndex;
+                i++;
+                prevLogLeaderIndex++;       
+            }        
+        }
+        
+        return 0;       
+        
+    }
+    
+    public void deleteEntries(int mismatchIndex) throws FileNotFoundException, IOException{
+        //remove entries of the log from index to EndOfFile
+        
+        String filename = "tmp.txt";
+        File auxfile = new File(filename);
+        
+        //copy logcontents for auxfile
+        copyContents(this.file, auxfile);
+        
+        //empty log file
+        PrintWriter emptyWriter = new PrintWriter(this.file);
+        emptyWriter.print("");
+        emptyWriter.close();
+        
+        //copy contents from auxfile to this.file until mismatchIndex
+        FileReader reader = new FileReader(auxfile);
+        BufferedReader input = new BufferedReader(reader);        
+        String line;
+        while ((line = input.readLine()) != null){ 
+            String parts[] = line.split("@");
+            int LogIndex = Integer.parseInt(parts[0]);
+            if (LogIndex < mismatchIndex)
+                this.writer.write(line); 
+            else if(LogIndex == mismatchIndex)
+                return;
+        }
+        
+        //delete auxfile
+        boolean delete = auxfile.delete();
+        if(!delete)
+            System.out.println("[Log] unable to delete file");
+        
+    }
+    
+    public void copyContents(File infile, File outfile) throws FileNotFoundException, IOException{
+        //code from http://beginnersbook.com/2014/05/how-to-copy-a-file-to-another-file-in-java/
+    	
+        FileInputStream instream = null;
+	FileOutputStream outstream = null;
+ 
+        instream = new FileInputStream(infile);
+        outstream = new FileOutputStream(outfile);
+
+        byte[] buffer = new byte[6144];
+
+        int length;
+        while ((length = instream.read(buffer)) > 0)
+            outstream.write(buffer, 0, length);
+
+        instream.close();
+        outstream.close();
+     
+    }
+
 }
-    
-    
-
-/*
-String source = args[0];
-          String target = args[1];
-
-          File sourceFile=new File(source);
-
-          Scanner content=new Scanner(sourceFile);
-          PrintWriter pwriter =new PrintWriter(target);
-
-          while(content.hasNextLine())
-          {
-             String s=content.nextLine();
-             StringBuffer buffer = new StringBuffer(s);
-             buffer=buffer.reverse();
-             String rs=buffer.toString();
-             pwriter.println(rs);
-          }
-          content.close();    
-          pwriter.close();
-          System.out.println("File is copied successful!");
-          }
-
-          catch(Exception e){
-              System.out.println("Something went wrong");
-          }
-       }
-
-
-*/
+   

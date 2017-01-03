@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class States {
     
-    public int term = 0;
+    public static int term = 0;
     private int nNodes = 5;
     
     public void mainCycle(String id) throws IOException{
@@ -18,14 +18,13 @@ public class States {
        
        //ATUALIZA TERMO SE NECESSARIO
        int[] logInfo = new int[2];
-       logInfo = log.getInfoLastEntry();
+       logInfo = log.getLogLastEntry();
        this.term = logInfo[1];
        System.out.println("TERMO DO LOG:"+this.term);
         
        //FIFO
        ConcurrentLinkedQueue<Pair> queue = new ConcurrentLinkedQueue<>();
        ConcurrentLinkedQueue<Pair> queueLOG = new ConcurrentLinkedQueue<>();
-       
        
        //STATE MACHINE
        FlowStateMachine flowSM = new FlowStateMachine();
@@ -48,7 +47,7 @@ public class States {
        receiver.start();
        
        //Thread log
-       ThreadLog logThread = new ThreadLog(queueLOG, log);
+       ThreadLog logThread = new ThreadLog(queueLOG, log, follower.comModule);
        Thread logWriter = new Thread(logThread);
        logWriter.start();       
        

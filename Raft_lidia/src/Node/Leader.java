@@ -32,10 +32,12 @@ public class Leader {
     }
     
     public int cycle(int term) throws IOException {
+        
         int[] info = new int[2];
-        info = this.log.getInfoLastEntry();
+        info = this.log.getLogLastEntry();
         int prevLogIndex = info[0];
         int prevLogTerm = info[1];
+        
         // creating timer task and schedule
         Timer timer = new Timer();
         timer.schedule(new sendHeartBeatTimer(term, this.log,prevLogIndex,prevLogTerm),100, 10000);  //heartbeatfreq >>>>>>> timeoutsfollowers
@@ -72,8 +74,9 @@ public class Leader {
                     System.out.println("[LEADER] : Received command: " + command);
                     this.log.writeLog(term, command);
                     
-                    //send APPENDENTRYS TO ALL FOLLOWERS
-                    String entry = "AppendEntry" + ":" + command + "@" + Integer.toString(term) + "@" + Integer.toString(prevLogTerm) + "@" + Integer.toString(prevLogIndex) ;
+                    //send APPENDENTRY TO ALL FOLLOWERS
+                    String entry = "AppendEntry" + ":" + Integer.toString(term) //este term aqui parece useless mas faz sentido qd se manda varios comandos de termos dif
+                            + ":" + command + "@" + Integer.toString(term) + "@" + Integer.toString(prevLogTerm) + "@" + Integer.toString(prevLogIndex) ;
                     this.comModule.sendMessageBroadcast(entry);
                 }   
                 else if(message.contains("LEDNOTUPD")){
