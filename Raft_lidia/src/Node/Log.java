@@ -46,15 +46,20 @@ public class Log {
         }   
     }
     
-    public void writeLog(int term, String command) throws IOException{
+    public void writeLog(int[] term, String[] command) throws IOException{
         
-        String entry = Integer.toString(this.logIndex) + "@" + Integer.toString(term) + "@" + command + "\n";
+        int i, size = term.length;
+        
+        for (i=0; i<size; i++){
+            String entry = Integer.toString(this.logIndex) + "@" + Integer.toString(term[i]) + "@" + command[i] + "\n";
 
-        // Writes the content to the file
-        this.writer.write(entry); 
-        this.writer.flush();
-      
-        this.logIndex ++;
+            // Writes the content to the file
+            this.writer.write(entry); 
+            this.writer.flush();
+
+            this.logIndex ++;
+            
+        }
     }
     
     public int[] getLogLastEntry() throws IOException{
@@ -109,7 +114,7 @@ public class Log {
         BufferedReader input = new BufferedReader(reader);        
         
         String line;
-        int i = -1;
+        int i = 0;
         
         while ((line = input.readLine()) != null){ 
             String parts[] = line.split("@");
@@ -123,9 +128,11 @@ public class Log {
             //a partir do momento que se encontra no log o prevLogIndex do leader,
             //comparar termLog com newEntryTerm, se forem diferentes -> conflito
             else{
-                if(newEntryTerms[i] != LogTerm)
-                    return LogIndex;
-                i++;
+                if( i < newEntryTerms.length ){
+                    if(newEntryTerms[i] != LogTerm)
+                        return LogIndex;
+                    i++;
+                }
                 prevLogLeaderIndex++;       
             }        
         }
@@ -139,6 +146,7 @@ public class Log {
         
         String filename = "tmp.txt";
         File auxfile = new File(filename);
+        auxfile.createNewFile();
         
         //copy logcontents for auxfile
         copyContents(this.file, auxfile);

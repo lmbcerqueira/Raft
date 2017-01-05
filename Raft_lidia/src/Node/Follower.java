@@ -47,7 +47,7 @@ public class Follower extends Thread {
         msgReceived = parts[0];
         String stringInet = parts[1];
         int receivedTerm = Integer.valueOf(parts[2].trim());
-        System.out.println("FOLLOWER: message received: " + msgReceived + "; INET:" + stringInet + ";TERM:" + receivedTerm);
+        //System.out.println("FOLLOWER: message received: " + msgReceived + "; INET:" + stringInet + ";TERM:" + receivedTerm);
         
         InetAddress inet;
         
@@ -65,15 +65,15 @@ public class Follower extends Thread {
                     case "REJECTED":
                         msgToSend = "FOLLOWER@" + Integer.toString(term);
                         comModule.sendMessage(msgToSend, inet);
-                        System.out.println("FOLLOWER: RECEBI UM RequestVote - Rejeitei");
+                        //System.out.println("FOLLOWER: RECEBI UM RequestVote - Rejeitei");
                         break;
                     case "ACCEPTED":
                         nextState = "newLeaderAccepted";
                         term = receivedTerm;
-                        System.out.println("FOLLOWER: Update term: "+ term);
+                        //System.out.println("FOLLOWER: Update term: "+ term);
                         msgToSend = "ACCEPTED@" + Integer.toString(term);
                         comModule.sendMessage(msgToSend, inet);
-                        System.out.println("FOLLOWER: RECEBI UM RequestVote - ACEITEI");
+                        //System.out.println("FOLLOWER: RECEBI UM RequestVote - ACEITEI");
                         break;
                 }
                 break;
@@ -86,7 +86,7 @@ public class Follower extends Thread {
                 inet = InetAddress.getByName(stringInet); 
                 msgToSend = "CANDNOTUPD@" + Integer.toString(term);   
                 comModule.sendMessage(msgToSend, inet);
-                System.out.println("FOLLOWER: RECEBI UM TERMO MENOR QUE O MEU");
+                //System.out.println("FOLLOWER: RECEBI UM TERMO MENOR QUE O MEU");
                 break;
         }
         
@@ -130,7 +130,7 @@ public class Follower extends Thread {
                 receivedTerm = this.queue.peek().getTerm();
                 inet = this.queue.peek().getInet();
                 IPsender = inet.getHostAddress();
-                System.out.println("Data Processing - received IP - " + IPsender);
+                //System.out.println("Data Processing - received IP - " + IPsender);
                 this.queue.poll();
                 return "HEARTBEATS@" + IPsender + "@" + Integer.toString(receivedTerm);
             }
@@ -139,7 +139,7 @@ public class Follower extends Thread {
                 receivedTerm = this.queue.peek().getTerm();
                 inet = this.queue.peek().getInet();
                 IPsender = inet.getHostAddress();
-                System.out.println("Data Processing - received IP - " + IPsender);
+                //System.out.println("Data Processing - received IP - " + IPsender);
                 this.queue.poll();
                 return "REQUESTVOTE@" + IPsender + "@" + Integer.toString(receivedTerm);
             }

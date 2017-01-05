@@ -1,7 +1,10 @@
 
 package Node;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,6 +22,8 @@ public class ThreadLog extends Thread{
     }
     
     public void run() {
+        
+        boolean checkIsOk = true;
         
         while(true){
             
@@ -43,41 +48,65 @@ public class ThreadLog extends Thread{
                     String newEntries[] = message.split(":"); 
                     int nNewEntries = (newEntries.length-1)/2; //newEntries.length-1 tem de dar sempre um n.o par
                     int[] newEntryTerms = new int[nNewEntries];
-                    int[] newEntryCommands = new int[nNewEntries];
+                    String[] newEntryCommands = new String[nNewEntries];
                     
                     int i, j=0; //começa em 1 para ignorar o newEntris[0]=AppendEntry
                     for(i=1; i<newEntries.length-1; i+=2){
                         newEntryTerms[j] = Integer.parseInt(newEntries[i]);
-                        newEntryCommands[j] = Integer.parseInt(newEntries[i+1]);
+                        newEntryCommands[j] = newEntries[i+1];
                         j++;
+                        System.out.println("new entry to be written: command- " + newEntryCommands[j-1] + "; term: " + newEntryTerms[j-1] );
                     }
+                    
                     //Message PrevLogIndex and msgPrevLogTerm
-                    int MsgPrevLogIndex = tmp.getPrevLogIndex();
-                    int msgPrevLogTerm = tmp.getPrevLogTerm();
-                    int msgTerm = tmp.getTerm();
+                    int leadPrevLogIndex = tmp.getPrevLogIndex();
+                    int leadPrevLogTerm = tmp.getPrevLogTerm();
+                    int leadTerm = tmp.getTerm();
+                    System.out.println("leadPrevLogTerm: " + leadPrevLogTerm + "leadPrevLogIndex: " + leadPrevLogIndex);
                     
-                    //test conditions to write on the log
-                    if (msgTerm < States.term){
-                        //reply false - ver no FOLLOWER  //TO DO !!!!
+                    //test conditions before writting on the log
+                    
+                    if (leadTerm < States.term){
+                        //reply false 
+                        InetAddress inet = tmp.getInet();
+                        String msgToSend = "LEADNOTUPD@" + Integer.toString(States.term);
+                        this.comModule.sendMessage(msgToSend, inet); //msg vai ser processada pelo lider juntamente com as msg "normais"
+                        checkIsOk = false;
                     }
                     
-                    //
-                    else if( this.log.lookForTerm(MsgPrevLogIndex) != msgPrevLogTerm){
-                        //return false   //TO DO!!!!
-                    }
-                    
-                    //test if a new entry conflicts with an existing one. Conflict = same index but different term
-                    else if( MsgPrevLogIndex < prevLogIndex ){
-                        int termWithConflict = this.log.checkForConflicts(newEntryTerms, MsgPrevLogIndex); // =0 se n houver conflitos
-                        if(termWithConflict != 0)
+                    //se o ficheiro não estiver vazio
+                    BufferedReader br = new BufferedReader(new FileReader(this.log.file));     
+                    if (br.readLine() != null) {
+                        if(this.log.lookForTerm(leadPrevLogIndex) != leadPrevLogTerm){
+                            System.out.println("logTerm: " + this.log.lookForTerm(leadPrevLogIndex) + "leadPrevLogTerm: " + leadPrevLogTerm);
+                            //reply false
+                            InetAddress inet = tmp.getInet();
+                            String msgToSend = "ERROR_LOG@" + Integer.toString(States.term);
+                            this.comModule.sendMessage(msgToSend, inet);  
+                            System.out.println("Log Matching Property failed");
+                            checkIsOk = false;
+                        }
+
+                        //test if a new entry conflicts with an existing one. Conflict = same index but different term
+                        int termWithConflict = this.log.checkForConflicts(newEntryTerms, leadTerm); // verificar a partir do inicio do log, a melhorar
+                        if(termWithConflict != 0){
                             //if yes, delete the existing entry and all the ones that follow it
                             this.log.deleteEntries(termWithConflict);
+                            InetAddress inet = tmp.getInet();
+                            String msgToSend = "ERROR_LOG@" + Integer.toString(States.term);
+                            this.comModule.sendMessage(msgToSend, inet);  
+                            System.out.println("Conflicts detected");
+                            checkIsOk = false;
+                        }                        
                     }
-                    //if no problem, write new entries on the log                   
-                    else;
-                        //this.log.writeLog(newEntryTerms,newEntryCommands);
-
                     
+                    //if no problem, write new entries on the log                   
+                    if(checkIsOk){
+                        this.log.writeLog(newEntryTerms,newEntryCommands);
+                        System.out.println("wrire log");
+                    }
+
+                    //if leader commit > commitIndex , set commitIndex = min(kleaderCommit, index of last new entry
                     
                     
                 } catch (IOException ex) {

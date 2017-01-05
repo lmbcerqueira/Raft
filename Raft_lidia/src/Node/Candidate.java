@@ -36,7 +36,7 @@ public class Candidate {
     public void startElection(int term) throws IOException{
         
         int[] info = new int[2];
-        info = this.log.getInfoLastEntry();
+        info = this.log.getLogLastEntry();
         
         int prevLogIndex = info[0];
         int prevLogTerm = info[1];
@@ -63,15 +63,15 @@ public class Candidate {
         switch(result){
             case "tryAGAIN":
                 nextState = "CANDIDATE";
-                System.out.println("candidato: tenta de novo, TIMEOUT ");
+                //System.out.println("candidato: tenta de novo, TIMEOUT ");
                 break;
             case "ACCEPTED":
                 nextState = "LEADER";
-                System.out.println("candidato: fUI ACEITE");
+                //System.out.println("candidato: fUI ACEITE");
                 break;
             case "REJECTED":
                 nextState = "FOLLOWER";
-                System.out.println("candidato: fui REJEITADO");
+                //System.out.println("candidato: fui REJEITADO");
                 break;
         }
         
@@ -109,7 +109,7 @@ public class Candidate {
                 this.queue.poll();           
             
             else if(this.dataProcessing.contains("CANDNOTUPD")){
-                System.out.println("CANDIDATO: recebi error - nao estou updated");
+                //System.out.println("CANDIDATO: recebi error - nao estou updated");
                 //atualizar term
                 ret[0] = Integer.toString(this.queue.peek().getTerm());   
                 ret[1] = "REJECTED";
@@ -117,7 +117,7 @@ public class Candidate {
                 return ret;
             }
             else if(this.dataProcessing.contains("ACCEPTED")){
-                System.out.println("CANDIDATO: recebi um voto");
+                //System.out.println("CANDIDATO: recebi um voto");
                 votes++;
                 this.queue.poll();
                 if(votes > (this.nNodes/2)){

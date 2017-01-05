@@ -53,7 +53,7 @@ class ComunicationUDP  {
         DatagramPacket pack = new DatagramPacket(sendData, sendData.length, serverIPAddress, this.port);
         this.s.send(pack);
 
-        System.out.println("COM send uni" + message);
+        //System.out.println("COM send uni" + message);
         
     }
 

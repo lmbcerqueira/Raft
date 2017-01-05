@@ -14,6 +14,8 @@ public class Leader {
     private final DataProcessing dataProcessing;
     private final ConcurrentLinkedQueue<Pair> queue;
     private final Log log;
+    public int prevLogIndex;
+    public int prevLogTerm;
     
     public Leader(ConcurrentLinkedQueue<Pair> queue, Log log) throws IOException {
         this.comModule = new ComunicationUDP();
@@ -21,6 +23,8 @@ public class Leader {
         this.queue = queue;
         this.dataProcessing = new DataProcessing(this.queue);
         this.log = log;
+        
+        
     }
     
     private final int getHeartBeat(){
@@ -35,14 +39,14 @@ public class Leader {
         
         int[] info = new int[2];
         info = this.log.getLogLastEntry();
-        int prevLogIndex = info[0];
-        int prevLogTerm = info[1];
+        this.prevLogIndex = info[0];
+        this.prevLogTerm = info[1];
         
         // creating timer task and schedule
         Timer timer = new Timer();
-        timer.schedule(new sendHeartBeatTimer(term, this.log,prevLogIndex,prevLogTerm),100, 10000);  //heartbeatfreq >>>>>>> timeoutsfollowers
+        timer.schedule(new sendHeartBeatTimer(term, this.log, this.prevLogIndex, this.prevLogTerm),100, 10000);  //heartbeatfreq >>>>>>> timeoutsfollowers
        
-        int newTerm = checkIncomingLeaderMsg(term, prevLogIndex,prevLogTerm); //retorna qd tiver de mudar para FOLLOWER
+        int newTerm = checkIncomingLeaderMsg(term); //retorna qd tiver de mudar para FOLLOWER
         
         System.out.println("LEADER : Vou sair do Leadercycle");
         timer.cancel();
@@ -50,7 +54,7 @@ public class Leader {
     }
     
     
-    public int checkIncomingLeaderMsg(int term, int prevLogIndex, int prevLogTerm) throws IOException{
+    public int checkIncomingLeaderMsg(int term) throws IOException{
         
         int receivedTerm;
         String pair;
@@ -67,16 +71,30 @@ public class Leader {
                 
                 message = this.queue.poll().getMessage();
                 
-                if (message.contains("COMMAND")){
+                if(message.contains("ERROR_LOG")){
+                    System.out.println("received error_log");
                     
+                }
+                
+                if (message.contains("COMMAND")){
+
+                    int[] info = new int[2];
+                    info = this.log.getLogLastEntry();
+                    this.prevLogIndex = info[0];
+                    this.prevLogTerm = info[1];
+        
                     String new_parts[] = message.split(":");
                     String command = new_parts[1];
                     System.out.println("[LEADER] : Received command: " + command);
-                    this.log.writeLog(term, command);
+                    int[] termLog = new int[1]; 
+                    termLog[0] = term;
+                    String[] commandLog = new String[1];
+                    commandLog[0] = command;
+                    this.log.writeLog(termLog, commandLog);
                     
                     //send APPENDENTRY TO ALL FOLLOWERS
                     String entry = "AppendEntry" + ":" + Integer.toString(term) //este term aqui parece useless mas faz sentido qd se manda varios comandos de termos dif
-                            + ":" + command + "@" + Integer.toString(term) + "@" + Integer.toString(prevLogTerm) + "@" + Integer.toString(prevLogIndex) ;
+                            + ":" + command + "@" + Integer.toString(term) + "@" + Integer.toString(this.prevLogTerm) + "@" + Integer.toString(this.prevLogIndex) ;
                     this.comModule.sendMessageBroadcast(entry);
                 }   
                 else if(message.contains("LEDNOTUPD")){
@@ -109,7 +127,7 @@ public class Leader {
             
             
             String heartBeatString = "HELLO" + "@" + Integer.toString(this.term) + "@" + Integer.toString(this.prevLogTerm) + "@" + Integer.toString(this.prevLogIndex) ;
-            System.out.println("LEADER: send" + heartBeatString);
+            //System.out.println("LEADER: send" + heartBeatString);
             try {
                 Leader.this.comModule.sendMessageBroadcast(heartBeatString);
             } catch (IOException ex) {
