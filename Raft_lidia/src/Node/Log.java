@@ -155,6 +155,7 @@ public class Log {
         PrintWriter emptyWriter = new PrintWriter(this.file);
         emptyWriter.print("");
         emptyWriter.close();
+        this.logIndex = 1;
         
         //copy contents from auxfile to this.file until mismatchIndex
         FileReader reader = new FileReader(auxfile);
@@ -195,6 +196,61 @@ public class Log {
         outstream.close();
      
     }
+    
+    public String getLogContents() throws FileNotFoundException, IOException{
+        
+        String log = "";
+        
+        FileReader reader = new FileReader(this.file);
+        BufferedReader input = new BufferedReader(reader);        
+        String line;
+        while ((line = input.readLine()) != null){ 
+            //String: term1:command1:term2:command2:term3:command3:
+            System.out.println("line:" + line);
+            String parts[] = line.split("@");
+            log = log + ":" + parts[1] + ":" + parts[2];
+        }
+        
+        System.out.println("getLogContents" + log);
+        return log;
+        
+    }
+    
+    public void updateLog(String message) throws FileNotFoundException, IOException{
+        
+        //message format: UPDATE_LOG:term1:command1:term2:command2:term3:command3:
+        String log = "";
+        
+        //empty log file
+        PrintWriter updateWriter = new PrintWriter(this.file);
+        updateWriter.print(log);
+        updateWriter.close();
 
+        //get new entries
+        System.out.println("[updateLog] full msg: \n" + message);
+        String newEntries[] = message.split(":"); 
+        
+        int k=0;
+        for (k=0 ; k< newEntries.length ; k++){
+            System.out.print("newEntry: " + newEntries[k] + " ");
+        }
+        
+        
+        System.out.println("newEntries.length: "  + newEntries.length);
+        int nNewEntries = (newEntries.length-1)/2; //newEntries.length-1 tem de dar sempre um n.o par
+        System.out.println("nNewEntries: "  + nNewEntries);
+        int[] newEntryTerms = new int[nNewEntries];
+        String[] newEntryCommands = new String[nNewEntries];
+
+        int i, j=0; //começa em 1 para ignorar o newEntris[0]=AppendEntry
+        for(i=1; i<newEntries.length-1; i+=2){
+            newEntryTerms[j] = Integer.parseInt(newEntries[i]);
+            newEntryCommands[j] = newEntries[i+1];
+            j++;
+        }        
+        
+        writeLog(newEntryTerms,newEntryCommands);
+
+    }
 }
    

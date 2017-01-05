@@ -42,7 +42,7 @@ public class States {
        InetAddress groupIP = InetAddress.getByName(follower.comModule.group);
        
        //Thread receive
-       ThreadReceive receiverThread = new ThreadReceive(port, groupIP, queue, queueLOG);
+       ThreadReceive receiverThread = new ThreadReceive(port, groupIP, queue, queueLOG, log);
        Thread receiver = new Thread(receiverThread);
        receiver.start();
        

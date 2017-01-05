@@ -1,6 +1,7 @@
 package Node;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -69,11 +70,14 @@ public class Leader {
                 if(receivedTerm > term)
                     break;   
                 
+                InetAddress address = this.queue.peek().getInet();
                 message = this.queue.poll().getMessage();
                 
                 if(message.contains("ERROR_LOG")){
                     System.out.println("received error_log");
-                    
+                    String log = this.log.getLogContents();
+                    String msgLog = "UPDATE_LOG" + log + "@" + Integer.toString(term);
+                    this.comModule.sendMessage(msgLog, address);
                 }
                 
                 if (message.contains("COMMAND")){

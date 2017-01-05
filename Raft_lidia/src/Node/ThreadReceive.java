@@ -17,12 +17,14 @@ public class ThreadReceive extends Thread {
     private final InetAddress groupIP;
     private final ConcurrentLinkedQueue<Pair> queue;
     private final ConcurrentLinkedQueue<Pair> queueLOG;
+    private final Log log;
     
-    ThreadReceive(int port, InetAddress groupIP, ConcurrentLinkedQueue<Pair> queue, ConcurrentLinkedQueue<Pair> queueLOG){
+    ThreadReceive(int port, InetAddress groupIP, ConcurrentLinkedQueue<Pair> queue, ConcurrentLinkedQueue<Pair> queueLOG, Log log){
         this.port = port;
         this.groupIP = groupIP;
         this.queue = queue;
         this.queueLOG = queueLOG;
+        this.log = log;
     }
        
     public void run() {
@@ -76,6 +78,7 @@ public class ThreadReceive extends Thread {
                 
                 byte[] bytes = pack.getData();
                 String receivedPacket = new String(bytes); 
+                //System.out.println("receivedPacket: " + receivedPacket);
                 parts = receivedPacket.split("@");
                 String to = parts[0];
                 String message = parts[1];
@@ -89,9 +92,12 @@ public class ThreadReceive extends Thread {
                         int prevIndex=Integer.parseInt(parts[4].trim());
                         Pair pair = new Pair(time, message, inet, term, prevIndex,prevTerm);
                         queueLOG.add(pair);
-                    }
-                     
+                    }   
                 }
+                
+                //update_logs
+                if ( to.compareTo(myIP)==0 && message.contains("UPDATE_LOG"))
+                    this.log.updateLog(message);                
                     
                 //mensagens normais    
                 else if ( to.compareTo("BROADCAST")==0 || to.compareTo(myIP)==0){
@@ -105,22 +111,14 @@ public class ThreadReceive extends Thread {
                     
                     }
                     else{
-                        
-                        
                         Pair pair = new Pair(time, message, inet, term, -1,-1);
                         queue.add(pair);
-                    }    
-                   
-                    
+                    } 
                 }
             }
    
         } catch (IOException ex) {
             Logger.getLogger(ThreadReceive.class.getName()).log(Level.SEVERE, null, ex);
         }
-              
-    
-  }
-    
-
+    }
 }
