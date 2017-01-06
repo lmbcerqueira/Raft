@@ -61,25 +61,47 @@ public class Leader {
         String message;
         
         while(true){
-            if (this.queue.isEmpty())
+            Pair tmp = this.queue.poll();
+            
+            if (tmp == null)
                 continue;
             else{
-                receivedTerm = this.queue.peek().getTerm();
+                receivedTerm = tmp.getTerm();
                 
                 if(receivedTerm > term)
                     break;   
                 
-                InetAddress address = this.queue.peek().getInet();
-                message = this.queue.poll().getMessage();
+                InetAddress address = tmp.getInet();
+                message = tmp.getMessage();
                 
-                if(message.contains("ERROR_LOG")){
-                    System.out.println("received error_log");
-                    String log = this.log.getLogContents();
+                if(message.contains("ERROR_LOG")){                    
+                    //decrementar a variavel writtenIndex desse follower
+                    String sourceMsgIP = tmp.getInet().getHostAddress();
+                    int id = Integer.parseInt(sourceMsgIP.substring(sourceMsgIP.length() - 1));
+                    States.writtenIndex[id-1] = States.writtenIndex[id-1] -1;
+                    
+                    //mandar log a partir desse ponto
+                    String log = this.log.getLogContents(States.writtenIndex[id-1]); //a partir do inicio
                     String msgLog = "UPDATE_LOG" + log + "@" + Integer.toString(term);
                     this.comModule.sendMessage(msgLog, address);
+                    System.out.println("[LEADER] received error_log. message sent: " + msgLog );
                 }
                 
-                if (message.contains("COMMAND")){
+                else if (message.contains("ACK")){
+                    //atualizar a variavel writtenIndex
+                    String contents[] = message.split(":");
+                    int lastIndexWritten = Integer.parseInt(contents[1]);
+                    String sourceMsgIP = tmp.getInet().getHostAddress();
+                    int id = Integer.parseInt(sourceMsgIP.substring(sourceMsgIP.length() - 1));
+                    States.writtenIndex[id-1] = lastIndexWritten; //o valor do nó 1 fica na pos 0, do nó 2 na pos 1, ...
+                    System.out.println("[LEADER] ACK recvd writtenIndex: " + States.writtenIndex[0] + ":" + 
+                                                                            + States.writtenIndex[1] + ":" +   
+                                                                            + States.writtenIndex[2] + ":" +
+                                                                             + States.writtenIndex[3] + ":" +
+                                                                              + States.writtenIndex[4]);    
+                }
+
+                else if (message.contains("COMMAND")){
 
                     int[] info = new int[2];
                     info = this.log.getLogLastEntry();
@@ -95,12 +117,13 @@ public class Leader {
                     commandLog[0] = command;
                     this.log.writeLog(termLog, commandLog);
                     
-                    //send APPENDENTRY TO ALL FOLLOWERS
+                    //send APPENDENTRY TO ALL FOLLOWERS                
                     String entry = "AppendEntry" + ":" + Integer.toString(term) //este term aqui parece useless mas faz sentido qd se manda varios comandos de termos dif
                             + ":" + command + "@" + Integer.toString(term) + "@" + Integer.toString(this.prevLogTerm) + "@" + Integer.toString(this.prevLogIndex) ;
                     System.out.println("Sent AppendEntry with prevLogIndex = " + this.prevLogIndex);
                     this.comModule.sendMessageBroadcast(entry);
-                }   
+                } 
+                
                 else if(message.contains("LEDNOTUPD")){
                     break;
                 }

@@ -46,7 +46,7 @@ public class Log {
         }   
     }
     
-    public void writeLog(int[] term, String[] command) throws IOException{
+    public int writeLog(int[] term, String[] command) throws IOException{
         
         int i, size = term.length;
         
@@ -60,6 +60,8 @@ public class Log {
             this.logIndex ++;
             
         }
+        
+        return (this.logIndex -1);
     }
     
     public int[] getLogLastEntry() throws IOException{
@@ -197,7 +199,8 @@ public class Log {
      
     }
     
-    public String getLogContents() throws FileNotFoundException, IOException{
+    public String getLogContents(int initIndex) throws FileNotFoundException, IOException{
+        //retorna o log a partir do index dado
         
         String log = "";
         
@@ -205,8 +208,13 @@ public class Log {
         BufferedReader input = new BufferedReader(reader);        
         String line;
         while ((line = input.readLine()) != null){ 
-            //String: term1:command1:term2:command2:term3:command3:
+           
             String parts[] = line.split("@");
+            
+            if (Integer.parseInt(parts[0]) < initIndex)
+                continue;
+            else
+            //String: term1:command1:term2:command2:term3:command3:
             log = log + ":" + parts[1] + ":" + parts[2];
         }
         
@@ -218,12 +226,6 @@ public class Log {
     public void updateLog(String message) throws FileNotFoundException, IOException{
         
         //message format: UPDATE_LOG:term1:command1:term2:command2:term3:command3:
-        String log = "";
-        
-        //empty log file
-        PrintWriter updateWriter = new PrintWriter(this.file);
-        updateWriter.print(log);
-        updateWriter.close();
 
         //get new entries
         String newEntries[] = message.split(":");   
@@ -240,7 +242,6 @@ public class Log {
         }        
         
         //updateLod with new entries
-        this.logIndex = 1;
         writeLog(newEntryTerms,newEntryCommands);
 
 

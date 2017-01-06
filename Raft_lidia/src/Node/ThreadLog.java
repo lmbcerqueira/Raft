@@ -60,7 +60,7 @@ public class ThreadLog extends Thread{
                     //Message PrevLogIndex and msgPrevLogTerm
                     int leadPrevLogIndex = tmp.getPrevLogIndex();
                     int leadPrevLogTerm = tmp.getPrevLogTerm();
-                    int leadTerm = tmp.getTerm();
+                    int leadTerm = tmp.getTerm();  
                     
                     //test conditions before writting on the log
                     
@@ -100,12 +100,12 @@ public class ThreadLog extends Thread{
                     
                     //if no problem, write new entries on the log                   
                     if(checkIsOk){
-                        this.log.writeLog(newEntryTerms,newEntryCommands);
+                        int lastTermWritten = this.log.writeLog(newEntryTerms,newEntryCommands);
                         System.out.println("writing on the log");
                         
-//                        //send aknowledge ao líder
-//                        String acknowledge = "ACK@" + Integer.toString(lastTermWritten);
-//                        this.comModule.sendMessage(acknowledge, tmp.getInet());
+                        //send aknowledge ao líder
+                        String acknowledge = "ACK:" + Integer.toString(lastTermWritten) + "@" + Integer.toString(States.term);
+                        this.comModule.sendMessage(acknowledge, tmp.getInet());
                     }
 
                     //if leader commit > commitIndex , set commitIndex = min(kleaderCommit, index of last new entry

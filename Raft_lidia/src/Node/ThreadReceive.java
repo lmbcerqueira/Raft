@@ -65,9 +65,10 @@ public class ThreadReceive extends Thread {
             socket.joinGroup(groupIP);
             
             while(true){
-                time=System.currentTimeMillis();
-                byte[] buf = new byte[1024];
                 
+                time = System.currentTimeMillis();
+                
+                byte[] buf = new byte[1024];
                 DatagramPacket pack = new DatagramPacket(buf, buf.length);
                 socket.receive(pack);
                 
@@ -78,7 +79,6 @@ public class ThreadReceive extends Thread {
                 
                 byte[] bytes = pack.getData();
                 String receivedPacket = new String(bytes); 
-                //System.out.println("receivedPacket: " + receivedPacket);
                 parts = receivedPacket.split("@");
                 String to = parts[0];
                 String message = parts[1];
@@ -91,14 +91,24 @@ public class ThreadReceive extends Thread {
                         int prevTerm=Integer.parseInt(parts[3].trim());
                         int prevIndex=Integer.parseInt(parts[4].trim());
                         Pair pair = new Pair(time, message, inet, term, prevIndex,prevTerm);
-                        System.out.println("[Thread Receive] Pair:" + message);
                         queueLOG.add(pair);
                     }   
                 }
                 
                 //update_logs
-                else if ( to.compareTo(myIP)==0 && message.contains("UPDATE_LOG"))
+                else if ( to.compareTo(myIP)==0 && message.contains("UPDATE_LOG")){
                     this.log.updateLog(message); 
+                    System.out.println("[Thread Receive] - received UPDATE_LOG");
+                }
+                
+                //mensagens ACK para saber quais os comandos commited
+                // so lider executa este pedaço de codigo
+                else if ( to.compareTo(myIP)==0 && message.contains("ACK") ){
+                    int prevTerm = 1; //not used - don't care
+                    int prevIndex = 1; //not used - don't care
+                    Pair pair = new Pair(time, message, inet, term, prevIndex,prevTerm);
+                    queue.add(pair);                  
+                }
                     
                 //mensagens Leader Election 
                 else if ( to.compareTo("BROADCAST")==0 || to.compareTo(myIP)==0){

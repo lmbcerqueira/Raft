@@ -3,12 +3,23 @@ package Node;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class States {
     
     public static int term = 0;
     private int nNodes = 5;
+    public static int[] nextFollowersIndex; //variável que guarda o indice a partir do qual se manda newEntry ao follower
+    public static int[] writtenIndex; //variável para decidir qual o commitedCommand
+    public static int commitIndex; //commitedCommand = segundo menor dos writtenIndex
+    
+    public States(){
+        nextFollowersIndex = new int[nNodes]; 
+        writtenIndex = new int[nNodes];
+        Arrays.fill(writtenIndex , 0);
+        commitIndex = 0;
+    }
     
     public void mainCycle(String id) throws IOException{
            
@@ -19,8 +30,12 @@ public class States {
        //ATUALIZA TERMO SE NECESSARIO
        int[] logInfo = new int[2];
        logInfo = log.getLogLastEntry();
-       this.term = logInfo[1];
-       System.out.println("TERMO DO LOG:"+this.term);
+       term = logInfo[1];
+       System.out.println("TERMO DO LOG:" + term);
+
+       //when a leader first comes to power, 
+       //it initializes all nextIndex values to the index just after the last one in its log
+       Arrays.fill(nextFollowersIndex, term - 1);
         
        //FIFO
        ConcurrentLinkedQueue<Pair> queue = new ConcurrentLinkedQueue<>();
