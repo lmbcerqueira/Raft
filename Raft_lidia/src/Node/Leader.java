@@ -25,13 +25,12 @@ public class Leader {
         this.dataProcessing = new DataProcessing(this.queue);
         this.log = log;
         
-        
     }
     
     private final int getHeartBeat(){
                          
-        int min_value = 1000;
-        int max_value = 1100;
+        int min_value = 1500;
+        int max_value = 1600;
         
         return (min_value + (int)(Math.random() * ((max_value - min_value) + 1)))/100;
     }
@@ -99,6 +98,7 @@ public class Leader {
                     //send APPENDENTRY TO ALL FOLLOWERS
                     String entry = "AppendEntry" + ":" + Integer.toString(term) //este term aqui parece useless mas faz sentido qd se manda varios comandos de termos dif
                             + ":" + command + "@" + Integer.toString(term) + "@" + Integer.toString(this.prevLogTerm) + "@" + Integer.toString(this.prevLogIndex) ;
+                    System.out.println("Sent AppendEntry with prevLogIndex = " + this.prevLogIndex);
                     this.comModule.sendMessageBroadcast(entry);
                 }   
                 else if(message.contains("LEDNOTUPD")){

@@ -23,9 +23,9 @@ public class ThreadLog extends Thread{
     
     public void run() {
         
-        boolean checkIsOk = true;
-        
         while(true){
+            
+            boolean checkIsOk = true;
             
             Pair tmp = this.queueLOG.poll();
             
@@ -55,14 +55,12 @@ public class ThreadLog extends Thread{
                         newEntryTerms[j] = Integer.parseInt(newEntries[i]);
                         newEntryCommands[j] = newEntries[i+1];
                         j++;
-                        System.out.println("new entry to be written: command- " + newEntryCommands[j-1] + "; term: " + newEntryTerms[j-1] );
                     }
                     
                     //Message PrevLogIndex and msgPrevLogTerm
                     int leadPrevLogIndex = tmp.getPrevLogIndex();
                     int leadPrevLogTerm = tmp.getPrevLogTerm();
                     int leadTerm = tmp.getTerm();
-                    System.out.println("leadPrevLogTerm: " + leadPrevLogTerm + "leadPrevLogIndex: " + leadPrevLogIndex);
                     
                     //test conditions before writting on the log
                     
@@ -71,6 +69,7 @@ public class ThreadLog extends Thread{
                         InetAddress inet = tmp.getInet();
                         String msgToSend = "LEADNOTUPD@" + Integer.toString(States.term);
                         this.comModule.sendMessage(msgToSend, inet); //msg vai ser processada pelo lider juntamente com as msg "normais"
+                        System.out.println("FODEU");
                         checkIsOk = false;
                     }
                     
@@ -78,12 +77,17 @@ public class ThreadLog extends Thread{
                     BufferedReader br = new BufferedReader(new FileReader(this.log.file));     
                     if (br.readLine() != null) {
                         if(this.log.lookForTerm(leadPrevLogIndex) != leadPrevLogTerm){
+                            System.out.println("Log Matching Property failed");
+                            System.out.println("leadPrevLogIndex" + leadPrevLogIndex + "; leadPrevLogTerm" + leadPrevLogTerm + "; this.log.lookForTerm(leadPrevLogIndex) " + this.log.lookForTerm(leadPrevLogIndex));
                             System.out.println("logTerm: " + this.log.lookForTerm(leadPrevLogIndex) + "leadPrevLogTerm: " + leadPrevLogTerm);
+
+                            System.out.println("commands:");
+                            for(i=0; i< newEntryCommands.length; i++)
+                                System.out.println(" : " + newEntryCommands[i] );
                             //reply false
                             InetAddress inet = tmp.getInet();
                             String msgToSend = "ERROR_LOG@" + Integer.toString(States.term);
                             this.comModule.sendMessage(msgToSend, inet);  
-                            System.out.println("Log Matching Property failed");
                             checkIsOk = false;
                         }
 
@@ -103,7 +107,7 @@ public class ThreadLog extends Thread{
                     //if no problem, write new entries on the log                   
                     if(checkIsOk){
                         this.log.writeLog(newEntryTerms,newEntryCommands);
-                        System.out.println("wrire log");
+                        System.out.println("writing on the log");
                     }
 
                     //if leader commit > commitIndex , set commitIndex = min(kleaderCommit, index of last new entry

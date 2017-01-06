@@ -35,8 +35,10 @@ class ComunicationUDP  {
               
         DatagramPacket pack = new DatagramPacket(sendData, sendData.length, serverIPAddress, this.port);
         
+        
         this.s.send(pack);
-        //System.out.println("COMM send: BROADCAST  -> " + message); 
+        if (message.contains("AppendEntry"))
+            System.out.println("COMM send: BROADCAST  -> " + message); 
             
     }
     

@@ -27,8 +27,8 @@ public class Follower extends Thread {
     
     public long getTimeout(){
                  
-        int min_value = 2000;//3
-        int max_value = 3000;//4
+        int min_value = 2500;//3
+        int max_value = 3500;//4
         
         return (min_value + (int)(Math.random() * ((max_value - min_value) + 1)))/100;   
     }

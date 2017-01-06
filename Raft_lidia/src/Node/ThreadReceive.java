@@ -91,15 +91,16 @@ public class ThreadReceive extends Thread {
                         int prevTerm=Integer.parseInt(parts[3].trim());
                         int prevIndex=Integer.parseInt(parts[4].trim());
                         Pair pair = new Pair(time, message, inet, term, prevIndex,prevTerm);
+                        System.out.println("[Thread Receive] Pair:" + message);
                         queueLOG.add(pair);
                     }   
                 }
                 
                 //update_logs
-                if ( to.compareTo(myIP)==0 && message.contains("UPDATE_LOG"))
-                    this.log.updateLog(message);                
+                else if ( to.compareTo(myIP)==0 && message.contains("UPDATE_LOG"))
+                    this.log.updateLog(message); 
                     
-                //mensagens normais    
+                //mensagens Leader Election 
                 else if ( to.compareTo("BROADCAST")==0 || to.compareTo(myIP)==0){
                                         
                     term = Integer.parseInt(parts[2].trim());

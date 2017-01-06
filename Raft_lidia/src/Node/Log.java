@@ -206,7 +206,6 @@ public class Log {
         String line;
         while ((line = input.readLine()) != null){ 
             //String: term1:command1:term2:command2:term3:command3:
-            System.out.println("line:" + line);
             String parts[] = line.split("@");
             log = log + ":" + parts[1] + ":" + parts[2];
         }
@@ -228,17 +227,9 @@ public class Log {
 
         //get new entries
         System.out.println("[updateLog] full msg: \n" + message);
-        String newEntries[] = message.split(":"); 
+        String newEntries[] = message.split(":");   
         
-        int k=0;
-        for (k=0 ; k< newEntries.length ; k++){
-            System.out.print("newEntry: " + newEntries[k] + " ");
-        }
-        
-        
-        System.out.println("newEntries.length: "  + newEntries.length);
         int nNewEntries = (newEntries.length-1)/2; //newEntries.length-1 tem de dar sempre um n.o par
-        System.out.println("nNewEntries: "  + nNewEntries);
         int[] newEntryTerms = new int[nNewEntries];
         String[] newEntryCommands = new String[nNewEntries];
 
@@ -249,7 +240,10 @@ public class Log {
             j++;
         }        
         
+        //updateLod with new entries
+        this.logIndex = 1;
         writeLog(newEntryTerms,newEntryCommands);
+        System.out.println("OK LOG UPDATE");
 
     }
 }
