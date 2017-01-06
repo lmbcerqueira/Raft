@@ -98,7 +98,7 @@ public class ThreadReceive extends Thread {
                 //update_logs
                 else if ( to.compareTo(myIP)==0 && message.contains("UPDATE_LOG")){
                     this.log.updateLog(message); 
-                    System.out.println("[Thread Receive] - received UPDATE_LOG");
+                    System.out.println("[Thread Receive] rcvd upLog. Msg: "+ message);
                 }
                 
                 //mensagens ACK para saber quais os comandos commited

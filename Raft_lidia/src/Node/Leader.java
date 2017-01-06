@@ -81,7 +81,7 @@ public class Leader {
                     States.writtenIndex[id-1] = States.writtenIndex[id-1] -1;
                     
                     //mandar log a partir desse ponto
-                    String log = this.log.getLogContents(States.writtenIndex[id-1]); //a partir do inicio
+                    String log = this.log.getLogContents(States.writtenIndex[id-1]);
                     String msgLog = "UPDATE_LOG" + log + "@" + Integer.toString(term);
                     this.comModule.sendMessage(msgLog, address);
                     System.out.println("[LEADER] received error_log. message sent: " + msgLog );

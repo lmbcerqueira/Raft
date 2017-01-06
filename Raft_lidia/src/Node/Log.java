@@ -48,20 +48,23 @@ public class Log {
     
     public int writeLog(int[] term, String[] command) throws IOException{
         
+        System.out.println("[DEBUG] ANTES WRITE current term: " + this.logIndex);
+        
         int i, size = term.length;
         
         for (i=0; i<size; i++){
             String entry = Integer.toString(this.logIndex) + "@" + Integer.toString(term[i]) + "@" + command[i] + "\n";
-
+            System.out.println("[DEBUG] entry: " + entry);
             // Writes the content to the file
             this.writer.write(entry); 
             this.writer.flush();
-
+            
             this.logIndex ++;
             
         }
+       
         
-        return (this.logIndex -1);
+        return (this.logIndex-1);
     }
     
     public int[] getLogLastEntry() throws IOException{
@@ -203,6 +206,7 @@ public class Log {
         //retorna o log a partir do index dado
         
         String log = "";
+        System.out.println("[DEBUG] logContents. initIndex: " + initIndex);
         
         FileReader reader = new FileReader(this.file);
         BufferedReader input = new BufferedReader(reader);        
@@ -218,7 +222,7 @@ public class Log {
             log = log + ":" + parts[1] + ":" + parts[2];
         }
         
-        System.out.println("getLogContents" + log);
+        System.out.println("[DEBUG] getLogContents" + log);
         return log;
         
     }
@@ -226,7 +230,7 @@ public class Log {
     public void updateLog(String message) throws FileNotFoundException, IOException{
         
         //message format: UPDATE_LOG:term1:command1:term2:command2:term3:command3:
-
+        
         //get new entries
         String newEntries[] = message.split(":");   
         
