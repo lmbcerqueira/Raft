@@ -37,8 +37,8 @@ class ComunicationUDP  {
         
         
         this.s.send(pack);
-        if (message.contains("AppendEntry"))
-            System.out.println("COMM send: BROADCAST  -> " + message); 
+
+            //System.out.println("COMM send: BROADCAST  -> " + message); 
             
     }
     

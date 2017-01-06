@@ -226,7 +226,6 @@ public class Log {
         updateWriter.close();
 
         //get new entries
-        System.out.println("[updateLog] full msg: \n" + message);
         String newEntries[] = message.split(":");   
         
         int nNewEntries = (newEntries.length-1)/2; //newEntries.length-1 tem de dar sempre um n.o par
@@ -243,7 +242,7 @@ public class Log {
         //updateLod with new entries
         this.logIndex = 1;
         writeLog(newEntryTerms,newEntryCommands);
-        System.out.println("OK LOG UPDATE");
+
 
     }
 }

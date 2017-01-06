@@ -78,12 +78,6 @@ public class ThreadLog extends Thread{
                     if (br.readLine() != null) {
                         if(this.log.lookForTerm(leadPrevLogIndex) != leadPrevLogTerm){
                             System.out.println("Log Matching Property failed");
-                            System.out.println("leadPrevLogIndex" + leadPrevLogIndex + "; leadPrevLogTerm" + leadPrevLogTerm + "; this.log.lookForTerm(leadPrevLogIndex) " + this.log.lookForTerm(leadPrevLogIndex));
-                            System.out.println("logTerm: " + this.log.lookForTerm(leadPrevLogIndex) + "leadPrevLogTerm: " + leadPrevLogTerm);
-
-                            System.out.println("commands:");
-                            for(i=0; i< newEntryCommands.length; i++)
-                                System.out.println(" : " + newEntryCommands[i] );
                             //reply false
                             InetAddress inet = tmp.getInet();
                             String msgToSend = "ERROR_LOG@" + Integer.toString(States.term);
@@ -92,10 +86,10 @@ public class ThreadLog extends Thread{
                         }
 
                         //test if a new entry conflicts with an existing one. Conflict = same index but different term
-                        int termWithConflict = this.log.checkForConflicts(newEntryTerms, leadTerm); // verificar a partir do inicio do log, a melhorar
+                        int termWithConflict = this.log.checkForConflicts(newEntryTerms, leadPrevLogIndex); // verificar a partir do inicio do log, A MELHORAR
                         if(termWithConflict != 0){
                             //if yes, delete the existing entry and all the ones that follow it
-                            this.log.deleteEntries(termWithConflict);
+                            //this.log.deleteEntries(termWithConflict); TO DO
                             InetAddress inet = tmp.getInet();
                             String msgToSend = "ERROR_LOG@" + Integer.toString(States.term);
                             this.comModule.sendMessage(msgToSend, inet);  
@@ -108,6 +102,10 @@ public class ThreadLog extends Thread{
                     if(checkIsOk){
                         this.log.writeLog(newEntryTerms,newEntryCommands);
                         System.out.println("writing on the log");
+                        
+//                        //send aknowledge ao líder
+//                        String acknowledge = "ACK@" + Integer.toString(lastTermWritten);
+//                        this.comModule.sendMessage(acknowledge, tmp.getInet());
                     }
 
                     //if leader commit > commitIndex , set commitIndex = min(kleaderCommit, index of last new entry
