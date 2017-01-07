@@ -18,13 +18,15 @@ public class ThreadReceive extends Thread {
     private final ConcurrentLinkedQueue<Pair> queue;
     private final ConcurrentLinkedQueue<Pair> queueLOG;
     private final Log log;
+    public final ComunicationUDP comModule;
     
-    ThreadReceive(int port, InetAddress groupIP, ConcurrentLinkedQueue<Pair> queue, ConcurrentLinkedQueue<Pair> queueLOG, Log log){
+    ThreadReceive(int port, InetAddress groupIP, ConcurrentLinkedQueue<Pair> queue, ConcurrentLinkedQueue<Pair> queueLOG, Log log, ComunicationUDP comModule){
         this.port = port;
         this.groupIP = groupIP;
         this.queue = queue;
         this.queueLOG = queueLOG;
         this.log = log;
+        this.comModule = comModule;
     }
        
     public void run() {
@@ -96,9 +98,29 @@ public class ThreadReceive extends Thread {
                 }
                 
                 //update_logs
-                else if ( to.compareTo(myIP)==0 && message.contains("UPDATE_LOG")){
-                    this.log.updateLog(message); 
-                    System.out.println("[Thread Receive] rcvd upLog. Msg: "+ message);
+                else if ( to.compareTo(myIP)==0 && message.contains("CHECK_PREVIOSENTRY")){
+                    
+                    //apagar linha anterior
+                    this.log.removeLastLine();
+                    
+                    //verificar LogMatchingProperty para a Entry recebida
+                    String contents[] = message.split(":");
+                    int prevIndex = Integer.parseInt(contents[1].trim());
+                    int prevTerm = Integer.parseInt(contents[2].trim());
+                    int[] lastEntry = this.log.getLogLastEntry();
+                    if(lastEntry[1] != prevTerm){
+                        System.out.println("Log Matching Property failed: lastEntryLeader: "+ lastEntry[1] + "prevTerm: " + prevTerm);
+                        //reply false
+                        String msgToSend = "ERROR_LOG@" + Integer.toString(States.term);
+                        this.comModule.sendMessage(msgToSend, inet); 
+                    }
+                    //se não falhou a LogMatching Property mandar ACK
+                    else{
+                        String acknowledge = "ACK:" + Integer.toString(prevIndex) + "@" + Integer.toString(States.term);
+                        this.comModule.sendMessage(acknowledge, inet);   
+                        System.out.println("mandei ack: index: " + prevIndex);
+                    }
+                    System.out.println("[Thread Receive] recvd CHECK_PREVIOSENTRY. Msg: "+ message);
                 }
                 
                 //mensagens ACK para saber quais os comandos commited

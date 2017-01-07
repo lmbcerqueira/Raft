@@ -80,9 +80,9 @@ public class Leader {
                     int id = Integer.parseInt(sourceMsgIP.substring(sourceMsgIP.length() - 1));
                     States.writtenIndex[id-1] = States.writtenIndex[id-1] -1;
                     
-                    //mandar log a partir desse ponto
-                    String log = this.log.getLogContents(States.writtenIndex[id-1]);
-                    String msgLog = "UPDATE_LOG" + log + "@" + Integer.toString(term);
+                    //mandar entry do index anterior anterior
+                    String log = this.log.getLogEntry(States.writtenIndex[id-1]);
+                    String msgLog = "CHECK_PREVIOSENTRY:" + log + "@" + Integer.toString(term);
                     this.comModule.sendMessage(msgLog, address);
                     System.out.println("[LEADER] received error_log. message sent: " + msgLog );
                 }

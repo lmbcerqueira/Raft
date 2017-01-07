@@ -100,11 +100,11 @@ public class ThreadLog extends Thread{
                     
                     //if no problem, write new entries on the log                   
                     if(checkIsOk){
-                        int lastTermWritten = this.log.writeLog(newEntryTerms,newEntryCommands);
+                        int lastIndexWritten = this.log.writeLog(newEntryTerms,newEntryCommands);
                         System.out.println("writing on the log");
                         
                         //send aknowledge ao líder
-                        String acknowledge = "ACK:" + Integer.toString(lastTermWritten) + "@" + Integer.toString(States.term);
+                        String acknowledge = "ACK:" + Integer.toString(lastIndexWritten) + "@" + Integer.toString(States.term);
                         this.comModule.sendMessage(acknowledge, tmp.getInet());
                     }
 

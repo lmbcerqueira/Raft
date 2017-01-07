@@ -15,17 +15,19 @@ public class Log {
     
     File file;
     FileWriter writer;
-    private int logIndex;
+    private int logIndex; //numero da ultima linha escrita!!
+    String filename;
 
     public Log(String filename) throws IOException{
         
         this.file = new File(filename);
         this.file.setReadable(true);
-        this.writer = new FileWriter(this.file, true); 
+        this.writer = new FileWriter(this.file, true);
+        this.filename = filename;
         
         if(!this.file.exists()){
             this.file.createNewFile();
-            this.logIndex = 1;
+            this.logIndex = 0;
         }
         else{
             FileReader reader = new FileReader(this.file);
@@ -38,33 +40,35 @@ public class Log {
             
             if(last!=null){
                 String parts[] = last.split("@");
-                this.logIndex = Integer.parseInt(parts[0]) + 1;
+                this.logIndex = Integer.parseInt(parts[0]);
             }
             else
-                this.logIndex = 1;           
+                this.logIndex = 0;           
             
         }   
     }
     
     public int writeLog(int[] term, String[] command) throws IOException{
         
-        System.out.println("[DEBUG] ANTES WRITE current term: " + this.logIndex);
-        
         int i, size = term.length;
         
         for (i=0; i<size; i++){
+            
+            this.logIndex ++;
+            
             String entry = Integer.toString(this.logIndex) + "@" + Integer.toString(term[i]) + "@" + command[i] + "\n";
             System.out.println("[DEBUG] entry: " + entry);
             // Writes the content to the file
             this.writer.write(entry); 
             this.writer.flush();
-            
-            this.logIndex ++;
+                   
             
         }
-       
         
-        return (this.logIndex-1);
+        System.out.println("[WRITE] last term updated: " + this.logIndex);
+        
+        
+        return this.logIndex;
     }
     
     public int[] getLogLastEntry() throws IOException{
@@ -146,61 +150,61 @@ public class Log {
         
     }
     
-    public void deleteEntries(int mismatchIndex) throws FileNotFoundException, IOException{
-        //remove entries of the log from index to EndOfFile
-        
-        String filename = "tmp.txt";
-        File auxfile = new File(filename);
-        auxfile.createNewFile();
-        
-        //copy logcontents for auxfile
-        copyContents(this.file, auxfile);
-        
-        //empty log file
-        PrintWriter emptyWriter = new PrintWriter(this.file);
-        emptyWriter.print("");
-        emptyWriter.close();
-        this.logIndex = 1;
-        
-        //copy contents from auxfile to this.file until mismatchIndex
-        FileReader reader = new FileReader(auxfile);
-        BufferedReader input = new BufferedReader(reader);        
-        String line;
-        while ((line = input.readLine()) != null){ 
-            String parts[] = line.split("@");
-            int LogIndex = Integer.parseInt(parts[0]);
-            if (LogIndex < mismatchIndex)
-                this.writer.write(line); 
-            else if(LogIndex == mismatchIndex)
-                return;
-        }
-        
-        //delete auxfile
-        boolean delete = auxfile.delete();
-        if(!delete)
-            System.out.println("[Log] unable to delete file");
-        
-    }
-    
-    public void copyContents(File infile, File outfile) throws FileNotFoundException, IOException{
-        //code from http://beginnersbook.com/2014/05/how-to-copy-a-file-to-another-file-in-java/
-    	
-        FileInputStream instream = null;
-	FileOutputStream outstream = null;
- 
-        instream = new FileInputStream(infile);
-        outstream = new FileOutputStream(outfile);
-
-        byte[] buffer = new byte[6144];
-
-        int length;
-        while ((length = instream.read(buffer)) > 0)
-            outstream.write(buffer, 0, length);
-
-        instream.close();
-        outstream.close();
-     
-    }
+//    public void deleteEntries(int mismatchIndex) throws FileNotFoundException, IOException{
+//        //remove entries of the log from index to EndOfFile
+//        
+//        String filename = "tmp.txt";
+//        File auxfile = new File(filename);
+//        auxfile.createNewFile();
+//        
+//        //copy logcontents for auxfile
+//        copyContents(this.file, auxfile);
+//        
+//        //empty log file
+//        PrintWriter emptyWriter = new PrintWriter(this.file);
+//        emptyWriter.print("");
+//        emptyWriter.close();
+//        this.logIndex = 1;
+//        
+//        //copy contents from auxfile to this.file until mismatchIndex
+//        FileReader reader = new FileReader(auxfile);
+//        BufferedReader input = new BufferedReader(reader);        
+//        String line;
+//        while ((line = input.readLine()) != null){ 
+//            String parts[] = line.split("@");
+//            int LogIndex = Integer.parseInt(parts[0]);
+//            if (LogIndex < mismatchIndex)
+//                this.writer.write(line); 
+//            else if(LogIndex == mismatchIndex)
+//                return;
+//        }
+//        
+//        //delete auxfile
+//        boolean delete = auxfile.delete();
+//        if(!delete)
+//            System.out.println("[Log] unable to delete file");
+//        
+//    }
+//    
+//    public void copyContents(File infile, File outfile) throws FileNotFoundException, IOException{
+//        //code from http://beginnersbook.com/2014/05/how-to-copy-a-file-to-another-file-in-java/
+//    	
+//        FileInputStream instream = null;
+//	FileOutputStream outstream = null;
+// 
+//        instream = new FileInputStream(infile);
+//        outstream = new FileOutputStream(outfile);
+//
+//        byte[] buffer = new byte[6144];
+//
+//        int length;
+//        while ((length = instream.read(buffer)) > 0)
+//            outstream.write(buffer, 0, length);
+//
+//        instream.close();
+//        outstream.close();
+//     
+//    }
     
     public String getLogContents(int initIndex) throws FileNotFoundException, IOException{
         //retorna o log a partir do index dado
@@ -227,28 +231,106 @@ public class Log {
         
     }
     
-    public void updateLog(String message) throws FileNotFoundException, IOException{
-        
-        //message format: UPDATE_LOG:term1:command1:term2:command2:term3:command3:
-        
-        //get new entries
-        String newEntries[] = message.split(":");   
-        
-        int nNewEntries = (newEntries.length-1)/2; //newEntries.length-1 tem de dar sempre um n.o par
-        int[] newEntryTerms = new int[nNewEntries];
-        String[] newEntryCommands = new String[nNewEntries];
+//    public void updateLog(String message) throws FileNotFoundException, IOException{
+//        
+//        //message format: UPDATE_LOG:term1:command1:term2:command2:term3:command3:
+//        
+//        //get new entries
+//        String newEntries[] = message.split(":");   
+//        
+//        int nNewEntries = (newEntries.length-1)/2; //newEntries.length-1 tem de dar sempre um n.o par
+//        int[] newEntryTerms = new int[nNewEntries];
+//        String[] newEntryCommands = new String[nNewEntries];
+//
+//        int i, j=0; //começa em 1 para ignorar o newEntris[0]=AppendEntry
+//        for(i=1; i<newEntries.length-1; i+=2){
+//            newEntryTerms[j] = Integer.parseInt(newEntries[i]);
+//            newEntryCommands[j] = newEntries[i+1];
+//            j++;
+//        }        
+//        
+//        //decrementar o index pq o leader vai mandar outra vez a pos anterior
+//        System.out.println("[DEBUG] logIndex: " + this.logIndex);
+//        this.logIndex --;
+//        System.out.println("[DEBUG] logIndex decrementado: " + this.logIndex);
+//        
+//        //apagar a ultima linha do Log
+//        removeLastLine(this.filename);
+//        
+//        //ver se há matching no novo termo recebido
+//        writeLog(newEntryTerms,newEntryCommands);
+//
+//
+//    }
 
-        int i, j=0; //começa em 1 para ignorar o newEntris[0]=AppendEntry
-        for(i=1; i<newEntries.length-1; i+=2){
-            newEntryTerms[j] = Integer.parseInt(newEntries[i]);
-            newEntryCommands[j] = newEntries[i+1];
-            j++;
-        }        
-        
-        //updateLod with new entries
-        writeLog(newEntryTerms,newEntryCommands);
 
+    public void removeLastLine() { 
+ 
+        this.logIndex--;
+         
+        try {
+            File inFile = new File(this.filename);
+            if (!inFile.isFile()) {
+                System.out.println("Parameter is not an existing file");
+                return;
+            }
+            //Construct the new file that will later be renamed to the original filename. 
+            File tempFile = new File(inFile.getAbsolutePath() + ".tmp");
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            PrintWriter pw = new PrintWriter(new FileWriter(tempFile));
+            String line ;
+            int n_line = 0;
+            //Read from the original file and write to the new 
+            //unless content matches data to be removed.
+            while ((line = br.readLine()) != null) {
+                if (n_line < this.logIndex) {
+                    n_line ++;
+                    pw.println(line);
+                    pw.flush();
+                }
+            }
+            pw.close();
+            br.close();
+ 
+            //Delete the original file
+            if (!inFile.delete()) {
+                System.out.println("Could not delete file");
+                return;
+            }
+            //Rename the new file to the filename the original file had.
+            if (!tempFile.renameTo(inFile))
+                System.out.println("Could not rename file");
+ 
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        
+       
 
     }
-}
-   
+  
+
+    public String getLogEntry(int index) throws IOException{
+        
+        FileReader reader = new FileReader(this.file);
+        BufferedReader input = new BufferedReader(reader);
+        
+        String line;
+        
+        int indexLog;
+        String log = "";
+        
+        while ((line = input.readLine()) != null) {
+            String parts[] = line.split("@");
+            indexLog = Integer.parseInt(parts[0]);
+            if (indexLog == index){
+                log = line;
+            }
+        }
+
+        return log.replace("@", ":");
+    }
+    
+} 
