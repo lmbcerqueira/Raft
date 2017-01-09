@@ -1,6 +1,7 @@
 
 package Node;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Arrays;
@@ -10,24 +11,27 @@ public class States {
     
     public static int term = 0;
     public static int nNodes =5;
-    public static int[] nextFollowersIndex; //variável que guarda o indice a partir do qual se manda newEntry ao follower
     public static int[] writtenIndex; //variável para decidir qual o commitedCommand
     public static int commitIndex; //commitedCommand = segundo menor dos writtenIndex
     public static String myIP;
+    File leaderElectedFile;
+    public static String myID;
     
-    public States(){
+    
+    public States(String id){
         
-        nextFollowersIndex = new int[nNodes]; 
         writtenIndex = new int[nNodes];
         Arrays.fill(writtenIndex , 0);
         commitIndex = 0;
         myIP = null;
+        this.leaderElectedFile = new File("leader.txt");
+        this.myID = id;
     }
     
-    public void mainCycle(String id) throws IOException{
+    public void mainCycle() throws IOException{
            
        // log
-       String filename = "log_" + id + ".txt";
+       String filename = "log_" + myID + ".txt";
        Log log = new Log(filename);
        
        //ATUALIZA TERMO SE NECESSARIO
@@ -35,10 +39,6 @@ public class States {
        logInfo = log.getLogLastEntry();
        term = logInfo[1];
        System.out.println("TERMO DO LOG:" + term);
-
-       //when a leader first comes to power, 
-       //it initializes all nextIndex values to the index just after the last one in its log
-       Arrays.fill(nextFollowersIndex, term - 1);
         
        //FIFO
        ConcurrentLinkedQueue<Pair> queue = new ConcurrentLinkedQueue<>();

@@ -34,7 +34,6 @@ public class ThreadReceive extends Thread {
         long time;
         MulticastSocket socket;
         InetAddress inet = null;
-        //int term,prevLogTerm,prevLogIndex;
         
         //get IP
         try{
@@ -71,6 +70,11 @@ public class ThreadReceive extends Thread {
                 DatagramPacket pack = new DatagramPacket(buf, buf.length);
                 socket.receive(pack);
                 
+                //numero aleatorio entre 0 e 1
+                float lossProbability = 0.1F;
+                float randomValue = (0 + (int)(Math.random() * ((1 - 0) + 1)))/100;
+                System.out.println("RANDOM" + randomValue);
+                
                 inet = pack.getAddress();
                 String inetStr = inet.toString();
                 String[] parts = inetStr.split("/");
@@ -95,7 +99,8 @@ public class ThreadReceive extends Thread {
                         int prevTerm=Integer.parseInt(parts[3].trim());
                         int prevIndex=Integer.parseInt(parts[4].trim());
                         Pair pair = new Pair(time, message, inet, term, prevIndex,prevTerm);
-                        queueLOG.add(pair);
+                        if(randomValue > lossProbability)
+                            queueLOG.add(pair);
                     }   
                 }
                 
@@ -146,7 +151,8 @@ public class ThreadReceive extends Thread {
                     int prevTerm = 1; //not used - don't care
                     int prevIndex = 1; //not used - don't care
                     Pair pair = new Pair(time, message, inet, term, prevIndex,prevTerm);
-                    queue.add(pair);                  
+                    if(randomValue > lossProbability)
+                        queue.add(pair);                  
                 }
                 //VAI ATUALIZAR LOGO OS LOGS
                 else if ( to.compareTo(States.myIP)==0 && message.contains("RefreshLog") ){
@@ -177,12 +183,14 @@ public class ThreadReceive extends Thread {
                         int prevTerm=Integer.parseInt(parts[3].trim());
                         int prevIndex=Integer.parseInt(parts[4].trim());
                         Pair pair = new Pair(time, message, inet, term, prevIndex,prevTerm);
-                        queue.add(pair);
+                        if(randomValue > lossProbability)
+                            queue.add(pair);
                     
                     }
                     else{
                         Pair pair = new Pair(time, message, inet, term, -1,-1);
-                        queue.add(pair);
+                        if(randomValue > lossProbability)
+                            queue.add(pair);
                     } 
                 }
     
