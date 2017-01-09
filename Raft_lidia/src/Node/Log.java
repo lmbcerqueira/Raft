@@ -62,7 +62,6 @@ public class Log {
             // Writes the content to the file
             this.writer.write(entry); 
             this.writer.flush();
-                   
             
         }
         
@@ -195,7 +194,7 @@ public class Log {
     public void removeLastLine() { 
  
         this.logIndex--;
-         
+         System.out.println("ENTREI AQUI FODEU 1");
         try {
             File inFile = new File(this.filename);
             if (!inFile.isFile()) {
@@ -261,6 +260,8 @@ public class Log {
     }
     
     public void deleteAfterIndex(int index) throws FileNotFoundException, IOException{
+        System.out.println("ENTREI AQUI FODEU 2");
+        
         try {
             File inFile = new File(this.filename);
             if (!inFile.isFile()) {
@@ -270,6 +271,7 @@ public class Log {
             //Construct the new file that will later be renamed to the original filename. 
             File tempFile = new File(inFile.getAbsolutePath() + ".tmp");
             BufferedReader br = new BufferedReader(new FileReader(file));
+            
             PrintWriter pw = new PrintWriter(new FileWriter(tempFile));
             String line ;
             //Read from the original file and write to the new 
@@ -289,15 +291,30 @@ public class Log {
             }
             pw.close();
             br.close();
- 
-            //Delete the original file
-            if (!inFile.delete()) {
-                System.out.println("Could not delete file");
-                return;
+            
+            //delete contents 
+            PrintWriter printer = new PrintWriter(this.file);
+            printer.print("");
+            printer.flush();
+            printer.close();
+            
+            this.writer.close();
+            this.writer = new FileWriter(this.file, true);
+            
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(tempFile));
+            while ((line = bufferedReader.readLine()) != null) {
+                this.writer.write(line + "\n");
+                this.writer.flush();
             }
-            //Rename the new file to the filename the original file had.
-            if (!tempFile.renameTo(inFile))
-                System.out.println("Could not rename file");
+            
+//            //Delete the original file
+//            if (!inFile.delete()) {
+//                System.out.println("Could not delete file");
+////                return;
+////            }
+//            //Rename the new file to the filename the original file had.
+//            if (!tempFile.renameTo(inFile))
+//                System.out.println("Could not rename file");
             
             int [] prev=getLogLastEntry();
             this.logIndex=prev[0];

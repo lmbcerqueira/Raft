@@ -97,16 +97,16 @@ public class Leader {
                     /*
                     E PARA TIRAR NO DA LIDIA ISTO
                     */
-                    if(id==8)
-                        id=1;
-                    else if(id==9)
-                        id=2;
-                    else if(id==0)
-                        id=3;
-                    else if(id==7)
-                        id=4;
-                    else if(id==2)
-                        id=5;
+//                    if(id==8)
+//                        id=1;
+//                    else if(id==9)
+//                        id=2;
+//                    else if(id==0)
+//                        id=3;
+//                    else if(id==7)
+//                        id=4;
+//                    else if(id==2)
+//                        id=5;
                     ///TEM HAVER COM O MEU INDEREÇO IP, O PRIMEIRO E 78
                     String msgLog;
                     System.out.println("[LEADER] received error_log." );
@@ -117,13 +117,12 @@ public class Leader {
                         this.comModule.sendMessage(msgLog, address);
                     }
                     else{
-                        States.writtenIndex[id-1] = States.writtenIndex[id-1] -1;
-
                         //mandar entry do index anterior anterior
                         String log = this.log.getLogEntry(States.writtenIndex[id-1]);
 
                         msgLog = "CHECK_PREVIOSENTRY" + ":" + log + "@" +Integer.toString(term);
                         this.comModule.sendMessage(msgLog, address);
+                        States.writtenIndex[id-1] = States.writtenIndex[id-1] -1;
                         
                     }
                     System.out.println(" message sent: " + msgLog + "   INDEX VISTO DO LOG->"+States.writtenIndex[id-1]);
@@ -146,16 +145,16 @@ public class Leader {
                     /*
                     E PARA TIRAR NO DA LIDIA ISTO
                     */
-                    if(id==8)
-                        id=1;
-                    else if(id==9)
-                        id=2;
-                    else if(id==0)
-                        id=3;
-                    else if(id==7)
-                        id=4;
-                    else if(id==2)
-                        id=5;
+//                    if(id==8)
+//                        id=1;
+//                    else if(id==9)
+//                        id=2;
+//                    else if(id==0)
+//                        id=3;
+//                    else if(id==7)
+//                        id=4;
+//                    else if(id==2)
+//                        id=5;
                     ///TEM HAVER COM O MEU INDEREÇO IP, O PRIMEIRO E 78
                     
                     System.out.println("[LEADER] IN ACK ID: "+id +".....lastIndexWritten: "+ lastIndexWritten);
