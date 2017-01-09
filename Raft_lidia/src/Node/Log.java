@@ -307,14 +307,12 @@ public class Log {
                 this.writer.flush();
             }
             
-//            //Delete the original file
-//            if (!inFile.delete()) {
-//                System.out.println("Could not delete file");
-////                return;
-////            }
-//            //Rename the new file to the filename the original file had.
-//            if (!tempFile.renameTo(inFile))
-//                System.out.println("Could not rename file");
+            //Delete the original file
+            if (!tempFile.delete()) {
+                System.out.println("Could not delete file");
+                    return;
+            }
+
             
             int [] prev=getLogLastEntry();
             this.logIndex=prev[0];

@@ -36,9 +36,6 @@ public class ThreadReceive extends Thread {
         InetAddress inet = null;
         //int term,prevLogTerm,prevLogIndex;
         
-        
-        String myIP = null;
-        
         //get IP
         try{
             String[] cmd = {
@@ -50,8 +47,8 @@ public class ThreadReceive extends Thread {
             final Process p = Runtime.getRuntime().exec(cmd);
             BufferedReader brinput = new BufferedReader(new InputStreamReader(p.getInputStream()));
             for(;;){
-                myIP = brinput.readLine();
-                if (myIP != null)
+                States.myIP = brinput.readLine();
+                if (States.myIP != null)
                     break;
             }
         }catch (Exception ex){
@@ -61,7 +58,7 @@ public class ThreadReceive extends Thread {
         //filter messages        
         try {
             
-            System.out.println("MyIP:" + myIP);
+            System.out.println("MyIP:" + States.myIP);
             socket = new MulticastSocket(this.port);
             
             socket.joinGroup(groupIP);
@@ -94,7 +91,7 @@ public class ThreadReceive extends Thread {
                 //Logs
                 if ( to.compareTo("BROADCAST")==0 && message.contains("AppendEntry")){ 
                     //Se for lider NAO ADICIONAR na queue
-                    if(senderIP.compareTo(myIP)!=0){
+                    if(senderIP.compareTo(States.myIP)!=0){
                         int prevTerm=Integer.parseInt(parts[3].trim());
                         int prevIndex=Integer.parseInt(parts[4].trim());
                         Pair pair = new Pair(time, message, inet, term, prevIndex,prevTerm);
@@ -103,7 +100,7 @@ public class ThreadReceive extends Thread {
                 }
                 
                 //update_logs
-                else if ( to.compareTo(myIP)==0 && message.contains("CHECK_PREVIOSENTRY")){
+                else if ( to.compareTo(States.myIP)==0 && message.contains("CHECK_PREVIOSENTRY")){
                     
                     //apagar linha anterior
                     //this.log.removeLastLine();
@@ -145,14 +142,14 @@ public class ThreadReceive extends Thread {
                 
                 //mensagens ACK para saber quais os comandos commited
                 // so lider executa este pedaço de codigo
-                else if ( to.compareTo(myIP)==0 && message.contains("ACK") ){
+                else if ( to.compareTo(States.myIP)==0 && message.contains("ACK") ){
                     int prevTerm = 1; //not used - don't care
                     int prevIndex = 1; //not used - don't care
                     Pair pair = new Pair(time, message, inet, term, prevIndex,prevTerm);
                     queue.add(pair);                  
                 }
                 //VAI ATUALIZAR LOGO OS LOGS
-                else if ( to.compareTo(myIP)==0 && message.contains("RefreshLog") ){
+                else if ( to.compareTo(States.myIP)==0 && message.contains("RefreshLog") ){
                      
                      System.out.println("[ThreadReceive]:REFRESHLOG->"+parts[3]);
                      String commands[] = parts[3].split(":");
@@ -173,7 +170,7 @@ public class ThreadReceive extends Thread {
                 }
                     
                 //mensagens Leader Election 
-                else if ( to.compareTo("BROADCAST")==0 || to.compareTo(myIP)==0){
+                else if ( to.compareTo("BROADCAST")==0 || to.compareTo(States.myIP)==0){
                                         
                     term = Integer.parseInt(parts[2].trim());
                     if(message.contains("ELECTION")||message.contains("HELLO")){

@@ -71,7 +71,7 @@ public class Leader {
         while(true){
             //atualiza os commits
                   
-            checkCommitedIndex();
+            
             
             
             Pair tmp = this.queue.poll();
@@ -129,6 +129,7 @@ public class Leader {
                 
                 }
                 else if (message.contains("ACK")){
+                    
                     //atualizar a variavel writtenIndex
                     String contents[] = message.split(":");
                     int lastIndexWritten = Integer.parseInt(contents[1]);
@@ -159,6 +160,7 @@ public class Leader {
                     
                     System.out.println("[LEADER] IN ACK ID: "+id +".....lastIndexWritten: "+ lastIndexWritten);
                     States.writtenIndex[id-1] = lastIndexWritten; //o valor do nó 1 fica na pos 0, do nó 2 na pos 1, ...
+                    checkCommitedIndex();
                     System.out.println("[LEADER SUMARIO] ACK recvd writtenIndex: " + States.writtenIndex[0] + ":" + 
                                                                             + States.writtenIndex[1] + ":" +   
                                                                             + States.writtenIndex[2] + ":" +
@@ -180,7 +182,12 @@ public class Leader {
                     termLog[0] = term;
                     String[] commandLog = new String[1];
                     commandLog[0] = command;
-                    this.log.writeLog(termLog, commandLog);
+                    int writtenIndex = this.log.writeLog(termLog, commandLog);
+                    
+                    //atualizar written index do lider
+                    int id = Integer.parseInt(States.myIP.substring(States.myIP.length() - 1));
+                    States.writtenIndex[id-1] = writtenIndex;
+                    
                     // SEE COMMITED INDEX
                     System.out.println("[LEADER] COMMITED INDEX="+States.commitIndex);
                     //send APPENDENTRY TO ALL FOLLOWERS                
@@ -212,9 +219,9 @@ public class Leader {
         }
         
         for(int k=0;k<States.nNodes;k++){
-           // System.out.println("written index votes for "+k+"="+votes[k]);
+            //System.out.println("written index votes for "+k+"="+votes[k]);
             if(votes[k]>(States.nNodes/2)){
-                if(votes[k]>States.commitIndex)
+                if(States.writtenIndex[k]>States.commitIndex)
                     States.commitIndex=States.writtenIndex[k];
             }
                 

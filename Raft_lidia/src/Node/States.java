@@ -13,6 +13,7 @@ public class States {
     public static int[] nextFollowersIndex; //variável que guarda o indice a partir do qual se manda newEntry ao follower
     public static int[] writtenIndex; //variável para decidir qual o commitedCommand
     public static int commitIndex; //commitedCommand = segundo menor dos writtenIndex
+    public static String myIP;
     
     public States(){
         
@@ -20,6 +21,7 @@ public class States {
         writtenIndex = new int[nNodes];
         Arrays.fill(writtenIndex , 0);
         commitIndex = 0;
+        myIP = null;
     }
     
     public void mainCycle(String id) throws IOException{
