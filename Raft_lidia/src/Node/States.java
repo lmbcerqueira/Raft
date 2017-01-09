@@ -9,12 +9,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class States {
     
     public static int term = 0;
-    private int nNodes = 5;
+    public static int nNodes =5;
     public static int[] nextFollowersIndex; //variável que guarda o indice a partir do qual se manda newEntry ao follower
     public static int[] writtenIndex; //variável para decidir qual o commitedCommand
     public static int commitIndex; //commitedCommand = segundo menor dos writtenIndex
     
     public States(){
+        
         nextFollowersIndex = new int[nNodes]; 
         writtenIndex = new int[nNodes];
         Arrays.fill(writtenIndex , 0);

@@ -82,9 +82,14 @@ public class ThreadReceive extends Thread {
                 byte[] bytes = pack.getData();
                 String receivedPacket = new String(bytes); 
                 parts = receivedPacket.split("@");
+                
                 String to = parts[0];
                 String message = parts[1];
+               
+               
                 int term = Integer.parseInt(parts[2].trim());
+               
+                
                 
                 //Logs
                 if ( to.compareTo("BROADCAST")==0 && message.contains("AppendEntry")){ 
@@ -101,15 +106,28 @@ public class ThreadReceive extends Thread {
                 else if ( to.compareTo(myIP)==0 && message.contains("CHECK_PREVIOSENTRY")){
                     
                     //apagar linha anterior
-                    this.log.removeLastLine();
-                    
+                    //this.log.removeLastLine();
+                                   
                     //verificar LogMatchingProperty para a Entry recebida
-                    String contents[] = message.split(":");
-                    int prevIndex = Integer.parseInt(contents[1].trim());
-                    int prevTerm = Integer.parseInt(contents[2].trim());
-                    int[] lastEntry = this.log.getLogLastEntry();
-                    if(lastEntry[1] != prevTerm){
-                        System.out.println("Log Matching Property failed: lastEntryLeader: "+ lastEntry[1] + "prevTerm: " + prevTerm);
+                    int prevIndex;
+                    int prevTerm;
+                    String prev[]=message.split(":");
+                    String check="CHECK_PREVIOSENTRY:";
+                    if(message.length()==check.length()){
+                        prevIndex = 0;
+                        prevTerm = 0;
+                    }
+                    else{    
+                       
+                        System.out.println("[ThreadReceive] CheckPrevisiosentry->"+parts[1]);
+                        prevIndex = Integer.parseInt(prev[1].trim());
+                        prevTerm = Integer.parseInt(prev[2].trim());
+                    }
+                    int termLOG= this.log.lookForTerm(prevIndex);
+//                    System.out.println("[ThreadReceive]: \n LAST INDEX do Log-"+lastEntry[0]+" Index Received do Leader-"+prevIndex
+//                                +"\n LAST TERM do Log-"+lastEntry[1]+" TERM Received do Leader-"+prevTerm);
+                    if(termLOG != prevTerm){
+                        System.out.println("[ThreadReceive]Log Matching Property failed: lastEntryLeader: "+ termLOG + "prevTerm: " + prevTerm);
                         //reply false
                         String msgToSend = "ERROR_LOG@" + Integer.toString(States.term);
                         this.comModule.sendMessage(msgToSend, inet); 
@@ -118,7 +136,9 @@ public class ThreadReceive extends Thread {
                     else{
                         String acknowledge = "ACK:" + Integer.toString(prevIndex) + "@" + Integer.toString(States.term);
                         this.comModule.sendMessage(acknowledge, inet);   
-                        System.out.println("mandei ack: index: " + prevIndex);
+                        System.out.println("[Thread Receive] mandei :" + acknowledge);
+                        this.log.deleteAfterIndex(prevIndex);
+                        
                     }
                     System.out.println("[Thread Receive] recvd CHECK_PREVIOSENTRY. Msg: "+ message);
                 }
@@ -130,6 +150,26 @@ public class ThreadReceive extends Thread {
                     int prevIndex = 1; //not used - don't care
                     Pair pair = new Pair(time, message, inet, term, prevIndex,prevTerm);
                     queue.add(pair);                  
+                }
+                //VAI ATUALIZAR LOGO OS LOGS
+                else if ( to.compareTo(myIP)==0 && message.contains("RefreshLog") ){
+                     
+                     System.out.println("[ThreadReceive]:REFRESHLOG->"+parts[3]);
+                     String commands[] = parts[3].split(":");
+                     ///vem termo:command
+                     int length=commands.length;
+                     length=length/2;
+                     int[] par = new int[length];
+                     String[] impar=new String[length];
+                     for(int i=0;i<length;i++){
+                         par[i]=Integer.parseInt(commands[i*2].trim());
+                         impar[i]=commands[(i*2+1)];
+                        }
+                     int prevIndex=this.log.writeLog(par, impar);
+                     String acknowledge = "ACK:" + Integer.toString(prevIndex) + "@" + Integer.toString(States.term);
+                     this.comModule.sendMessage(acknowledge, inet);   
+                     
+                     
                 }
                     
                 //mensagens Leader Election 
@@ -148,6 +188,7 @@ public class ThreadReceive extends Thread {
                         queue.add(pair);
                     } 
                 }
+    
             }
    
         } catch (IOException ex) {

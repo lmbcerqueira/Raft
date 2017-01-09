@@ -69,31 +69,38 @@ public class ThreadLog extends Thread{
                         InetAddress inet = tmp.getInet();
                         String msgToSend = "LEADNOTUPD@" + Integer.toString(States.term);
                         this.comModule.sendMessage(msgToSend, inet); //msg vai ser processada pelo lider juntamente com as msg "normais"
-                        System.out.println("FODEU");
+                        System.out.println("[THREADLOG]: TERMO MENOR DO LIDER");
                         checkIsOk = false;
                     }
                     
                     //se o ficheiro não estiver vazio
                     BufferedReader br = new BufferedReader(new FileReader(this.log.file));     
                     if (br.readLine() != null) {
-                        if(this.log.lookForTerm(leadPrevLogIndex) != leadPrevLogTerm){
-                            System.out.println("Log Matching Property failed");
+                        //test if a new entry conflicts with an existing one. Conflict = same index but different term
+                        int termWithConflict = this.log.checkForConflicts(newEntryTerms, leadPrevLogIndex); // verificar a partir do inicio do log, A MELHORAR
+                        boolean alreadyERROR=false;
+                        int logTerm=this.log.lookForTerm(leadPrevLogIndex);
+                        System.out.println(" leadPrevLogIndex="+leadPrevLogIndex+" leadPrevLogTerm="+leadPrevLogTerm+" log Term="+logTerm);
+                        if(logTerm != leadPrevLogTerm){
+                            
                             //reply false
                             InetAddress inet = tmp.getInet();
                             String msgToSend = "ERROR_LOG@" + Integer.toString(States.term);
+                            System.out.println("[THREADLOG]: Log Matching Property failed, MSG to send: "+msgToSend);
+                            
+                            
                             this.comModule.sendMessage(msgToSend, inet);  
+                            alreadyERROR=true;
                             checkIsOk = false;
                         }
 
-                        //test if a new entry conflicts with an existing one. Conflict = same index but different term
-                        int termWithConflict = this.log.checkForConflicts(newEntryTerms, leadPrevLogIndex); // verificar a partir do inicio do log, A MELHORAR
-                        if(termWithConflict != 0){
+                        if(termWithConflict != 0 && alreadyERROR==false){ //assim so manda uma mensagem de erro 
                             //if yes, delete the existing entry and all the ones that follow it
                             //this.log.deleteEntries(termWithConflict); TO DO
                             InetAddress inet = tmp.getInet();
                             String msgToSend = "ERROR_LOG@" + Integer.toString(States.term);
                             this.comModule.sendMessage(msgToSend, inet);  
-                            System.out.println("Conflicts detected");
+                            System.out.println("[THREADLOG]: Conflicts detectedMSG to send: "+msgToSend);
                             checkIsOk = false;
                         }                        
                     }
@@ -101,10 +108,11 @@ public class ThreadLog extends Thread{
                     //if no problem, write new entries on the log                   
                     if(checkIsOk){
                         int lastIndexWritten = this.log.writeLog(newEntryTerms,newEntryCommands);
-                        System.out.println("writing on the log");
+                        System.out.println("[THREADLOG]: writing on the log");
                         
                         //send aknowledge ao líder
                         String acknowledge = "ACK:" + Integer.toString(lastIndexWritten) + "@" + Integer.toString(States.term);
+                        System.out.println("[ThreadLog] message:  "+acknowledge);
                         this.comModule.sendMessage(acknowledge, tmp.getInet());
                     }
 

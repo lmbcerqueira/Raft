@@ -28,8 +28,8 @@ public class Candidate {
     public long getTimeout(){
         
         int min_value = 2000; //?????????
-        int max_value = 2100; //????????????
-        
+        int max_value = 3000; //????????????
+         System.out.println(" ");
         return (min_value + (int)(Math.random() * ((max_value - min_value) + 1)))/100;
     }
       
@@ -40,10 +40,10 @@ public class Candidate {
         
         int prevLogIndex = info[0];
         int prevLogTerm = info[1];
-        
+       
         String electionString= "ELECTION@" + Integer.toString(term) + "@" + Integer.toString(prevLogTerm) + "@" + Integer.toString(prevLogIndex);
         
-        System.out.println("candidato: START ELECTION");
+        System.out.println("candidato: START ELECTION-> messageELection=ele@term@prevTerm@prevIndex="+electionString);
         
         this.comModule.sendMessageBroadcast(electionString); 
     }
@@ -147,6 +147,21 @@ public class Candidate {
                     ret[1] = "REJECTED";
                     return ret;
                 }     
+            }
+            ///PARA O CASO EM QUE FICAM OS 2 CANIDADTOS E NENHUM SE DECIDE
+            else if(this.dataProcessing.contains("ELECTION")){
+                 System.out.print("1");
+                 if(!this.dataProcessing.isReceivedTermUPdated(term)){
+                    inet = this.queue.peek().getInet();
+                    this.queue.poll();  
+                    String msgToSend = "CANDNOTUPD@" + Integer.toString(term);
+                    this.comModule.sendMessage(msgToSend, inet);
+                }
+                else{
+                    System.out.println("/2-rejected"); 
+                    ret[1] = "REJECTED";
+                    return ret;
+                }
             }
             
             else if(!(this.dataProcessing.contains("ACCEPTED") || this.dataProcessing.contains("REJECTED"))){

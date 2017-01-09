@@ -27,7 +27,7 @@ public class Follower extends Thread {
     
     public long getTimeout(){
                  
-        int min_value = 2500;//3
+        int min_value = 2000;//3
         int max_value = 3500;//4
         
         return (min_value + (int)(Math.random() * ((max_value - min_value) + 1)))/100;   
@@ -36,7 +36,7 @@ public class Follower extends Thread {
 
     
     public String cycle(long timeStart, int term) throws UnknownHostException, IOException{
-
+        
         String msgReceived;
         String msgToSend;
         String nextState = "FOLLOWER";
@@ -47,8 +47,9 @@ public class Follower extends Thread {
         msgReceived = parts[0];
         String stringInet = parts[1];
         int receivedTerm = Integer.valueOf(parts[2].trim());
-        //System.out.println("FOLLOWER: message received: " + msgReceived + "; INET:" + stringInet + ";TERM:" + receivedTerm);
-        
+        //mesage@ipsender@term@prevIndex@prevTerm 
+        int receivedLastIndex = Integer.valueOf(parts[3].trim());
+        int receivedLastTerm = Integer.valueOf(parts[4].trim());
         InetAddress inet;
         
         switch(msgReceived){
@@ -59,13 +60,29 @@ public class Follower extends Thread {
                 break;
                 
             case "REQUESTVOTE":
+               
                 inet = InetAddress.getByName(stringInet); 
-                String answer = vote(term, receivedTerm); 
+                String answer=null;
+                int logTerm=this.log.lookForTerm(receivedLastIndex);
+                
+                if(logTerm==-1){ //FICEHIRO AINDA NAO EXISTE....
+                   answer = vote(term, receivedTerm); 
+                }
+                else if(receivedLastTerm==logTerm){
+                    answer = vote(term, receivedTerm); 
+                }
+                else{
+                    answer = "REJECTED"; 
+                    System.out.println("FOLLOWER: RECEBI UM RequestVote - Rejeitei por causa do LOG INCONSISTENCY"+
+                            "  receivedLastTerm="+receivedLastTerm+"  logTerm"+logTerm+ " FOR LAST INDEX="+receivedLastIndex);
+                }
+                    
+                
                 switch (answer) {
                     case "REJECTED":
                         msgToSend = "FOLLOWER@" + Integer.toString(term);
                         comModule.sendMessage(msgToSend, inet);
-                        //System.out.println("FOLLOWER: RECEBI UM RequestVote - Rejeitei");
+                        System.out.println("FOLLOWER: RECEBI UM RequestVote - Rejeitei");
                         break;
                     case "ACCEPTED":
                         nextState = "newLeaderAccepted";
@@ -73,7 +90,7 @@ public class Follower extends Thread {
                         //System.out.println("FOLLOWER: Update term: "+ term);
                         msgToSend = "ACCEPTED@" + Integer.toString(term);
                         comModule.sendMessage(msgToSend, inet);
-                        //System.out.println("FOLLOWER: RECEBI UM RequestVote - ACEITEI");
+                        System.out.println("FOLLOWER: RECEBI UM RequestVote - ACEITEI");
                         break;
                 }
                 break;
@@ -102,13 +119,15 @@ public class Follower extends Thread {
         int receivedTerm;
         String IPsender;
         
+        
         while(true){
             
             long x = System.currentTimeMillis() - timeStart;
             float xSeconds=x/1000F; //time in seconds
             
             if(xSeconds > this.timeout)
-                return "TIMEOUT@" + "TIMEOUT" + "@1"; // dois ultimos elementos don't care
+                return "TIMEOUT@" + "TIMEOUT" + "@1"
+                        + "@" + "1"+ "@" + "1"; // dois ultimos elementos don't care
              
             else if(this.queue.isEmpty());
                 
@@ -123,7 +142,10 @@ public class Follower extends Thread {
             else if(!dataProcessing.isReceivedTermUPdated(term)){
                 inet = this.queue.peek().getInet();
                 IPsender = inet.getHostAddress();
-                return "ERROR@" + IPsender + "@" + Integer.toString(term);
+                String message= "ERROR@" + IPsender + "@" + Integer.toString(term)
+                        + "@" + Integer.toString(this.queue.peek().getPrevLogIndex())+ "@" + Integer.toString(this.queue.peek().getPrevLogTerm());
+                this.queue.poll();
+                return message;
             }    
             
             else if(dataProcessing.contains("HELLO")){
@@ -131,17 +153,26 @@ public class Follower extends Thread {
                 inet = this.queue.peek().getInet();
                 IPsender = inet.getHostAddress();
                 //System.out.println("Data Processing - received IP - " + IPsender);
+                
+                String message="HEARTBEATS@" + IPsender + "@" + Integer.toString(receivedTerm)
+                        + "@" + Integer.toString(this.queue.peek().getPrevLogIndex())+ "@" + Integer.toString(this.queue.peek().getPrevLogTerm());
                 this.queue.poll();
-                return "HEARTBEATS@" + IPsender + "@" + Integer.toString(receivedTerm);
+                return message;
             }
             
             else if(dataProcessing.contains("ELECTION")){
                 receivedTerm = this.queue.peek().getTerm();
                 inet = this.queue.peek().getInet();
                 IPsender = inet.getHostAddress();
+                
+                //MESSAGE ELECTION="ELECTION@" + Integer.toString(term) + "@" + Integer.toString(prevLogTerm) + "@" + Integer.toString(prevLogIndex);
+        
                 //System.out.println("Data Processing - received IP - " + IPsender);
+                
+                String message= "REQUESTVOTE@" + IPsender + "@" + Integer.toString(receivedTerm)
+                        + "@" + Integer.toString(this.queue.peek().getPrevLogIndex())+ "@" + Integer.toString(this.queue.peek().getPrevLogTerm());
                 this.queue.poll();
-                return "REQUESTVOTE@" + IPsender + "@" + Integer.toString(receivedTerm);
+                return message;
             }
                         
             else if(!(dataProcessing.contains("HELLO") || dataProcessing.contains("ELECTION"))){
